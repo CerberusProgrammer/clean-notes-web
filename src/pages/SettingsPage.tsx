@@ -4,6 +4,11 @@ import { useTranslation } from "../i18n/locales/i18nHooks";
 import { LocaleCode } from "../i18n/locales/locales";
 import { NotesService } from "../provider/NotesService";
 import "./SettingsPage.css";
+import {
+  getThemeColor,
+  setThemeColor,
+  ThemeColor,
+} from "../utils/theme_provider";
 
 export default function SettingsPage() {
   const { t, locale, changeLocale } = useTranslation();
@@ -14,6 +19,7 @@ export default function SettingsPage() {
   const [darkMode, setDarkMode] = useState(
     document.body.classList.contains("dark-theme")
   );
+  const [colorTheme, setColorTheme] = useState<ThemeColor>(getThemeColor());
   const [defaultView, setDefaultView] = useState<"grid" | "list">(
     () =>
       (localStorage.getItem("cleanNotes-defaultView") as "grid" | "list") ||
@@ -50,12 +56,24 @@ export default function SettingsPage() {
       setDarkMode(e.detail.isDark);
     };
 
+    const handleColorThemeChange = (e: CustomEvent) => {
+      setColorTheme(e.detail.colorTheme);
+    };
+
     window.addEventListener("themechange", handleThemeChange as EventListener);
+    window.addEventListener(
+      "colorthemechange",
+      handleColorThemeChange as EventListener
+    );
 
     return () => {
       window.removeEventListener(
         "themechange",
         handleThemeChange as EventListener
+      );
+      window.removeEventListener(
+        "colorthemechange",
+        handleColorThemeChange as EventListener
       );
     };
   }, []);
@@ -77,10 +95,18 @@ export default function SettingsPage() {
     );
   };
 
+  // Función para manejar el cambio de color
+  const handleColorThemeChange = (selectedTheme: ThemeColor) => {
+    setColorTheme(selectedTheme);
+    setThemeColor(selectedTheme);
+  };
+
   // Función para guardar todas las configuraciones
   const saveSettings = () => {
     // Cambiar idioma directamente, sin esperar a la persistencia
     changeLocale(language);
+
+    // El tema y color ya se aplican inmediatamente en sus respectivos handlers
 
     // Guardar vista por defecto
     localStorage.setItem("cleanNotes-defaultView", defaultView);
@@ -109,6 +135,7 @@ export default function SettingsPage() {
   const resetSettings = () => {
     setLanguage("es");
     handleThemeChange(false);
+    handleColorThemeChange("blue");
     setDefaultView("grid");
     setDefaultSort("newest");
     setAutoSave(true);
@@ -294,6 +321,36 @@ export default function SettingsPage() {
                 <option value="es">{t.settings.spanish}</option>
                 <option value="en">{t.settings.english}</option>
               </select>
+            </div>
+          </div>
+
+          {/* Opción para tema de color */}
+          <div className="setting-row">
+            <div className="setting-label">
+              <span>{t.settings.colorTheme}</span>
+              <span className="setting-description">
+                {colorTheme === "blue"
+                  ? t.settings.blueTheme
+                  : t.settings.purpleTheme}
+              </span>
+            </div>
+            <div className="setting-control">
+              <div className="color-theme-options">
+                <button
+                  className={`color-theme-option blue ${
+                    colorTheme === "blue" ? "active" : ""
+                  }`}
+                  onClick={() => handleColorThemeChange("blue")}
+                  aria-label={t.settings.blueTheme}
+                />
+                <button
+                  className={`color-theme-option purple ${
+                    colorTheme === "purple" ? "active" : ""
+                  }`}
+                  onClick={() => handleColorThemeChange("purple")}
+                  aria-label={t.settings.purpleTheme}
+                />
+              </div>
             </div>
           </div>
 

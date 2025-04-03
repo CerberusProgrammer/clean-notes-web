@@ -277,3 +277,52 @@ input:checked + .toggle-slider:before {
     text-align: left;
   }
 }
+
+/* Añadir al final del archivo */
+
+.color-theme-options {
+  display: flex;
+  gap: var(--space-md);
+}
+
+.color-theme-option {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 3px solid transparent;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.color-theme-option.active {
+  border-color: var(--text-primary);
+}
+
+.color-theme-option::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%) scale(0);
+  color: white;
+  width: 10px;
+  height: 10px;
+  background-color: white;
+  border-radius: 50%;
+  opacity: 0;
+  transition: transform 0.2s, opacity 0.2s;
+}
+
+.color-theme-option.active::after {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.color-theme-option.blue {
+  background-color: #3b82f6;
+}
+
+.color-theme-option.purple {
+  background-color: #8b5cf6;
+}
