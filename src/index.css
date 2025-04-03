@@ -527,6 +527,7 @@ textarea:disabled {
 
 .notes-container.list .note-excerpt {
   -webkit-line-clamp: 2;
+  line-clamp: 2;
 }
 
 .notes-container.list .note-card-actions {
@@ -592,6 +593,7 @@ textarea:disabled {
   overflow: hidden;
   display: -webkit-box;
   -webkit-line-clamp: 6;
+  line-clamp: 6;
   -webkit-box-orient: vertical;
 }
 
@@ -930,6 +932,7 @@ textarea:disabled {
 .subtitle {
   color: var(--text-tertiary);
   margin-top: -5px;
+  padding-top: var(--space-xs);
 }
 
 .notes-actions {
