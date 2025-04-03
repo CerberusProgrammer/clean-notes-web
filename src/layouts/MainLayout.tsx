@@ -10,21 +10,61 @@ export default function MainLayout({ children }: Props) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mounted, setMounted] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [darkMode, setDarkMode] = useState(false);
 
-  // Efecto de montaje con animación
+  // Verificar si estamos en una página de nota
+  const isNotePage = location.pathname.includes("/note/");
+
   useEffect(() => {
     setMounted(true);
 
-    // Actualizar la hora cada minuto
     const interval = setInterval(() => {
       setCurrentTime(new Date());
     }, 60000);
 
+    const savedTheme = localStorage.getItem("cleanNotes-theme");
+    if (savedTheme === "dark") {
+      setDarkMode(true);
+      document.body.classList.add("dark-theme");
+    }
+
+    // Colapsar automáticamente el sidebar cuando se está en la página de nota
+    if (isNotePage) {
+      setSidebarOpen(false);
+    } else {
+      // Restaurar estado anterior del sidebar
+      const savedSidebarState = localStorage.getItem("cleanNotes-sidebar");
+      setSidebarOpen(savedSidebarState !== "closed");
+    }
+
     return () => clearInterval(interval);
-  }, []);
+  }, [isNotePage]);
+
+  // Guardar estado del sidebar
+  const toggleSidebar = () => {
+    const newState = !sidebarOpen;
+    setSidebarOpen(newState);
+    localStorage.setItem("cleanNotes-sidebar", newState ? "open" : "closed");
+  };
+
+  const toggleTheme = () => {
+    setDarkMode(!darkMode);
+    if (!darkMode) {
+      document.body.classList.add("dark-theme");
+      localStorage.setItem("cleanNotes-theme", "dark");
+    } else {
+      document.body.classList.remove("dark-theme");
+      localStorage.setItem("cleanNotes-theme", "light");
+    }
+  };
+
+  // No mostrar layout normal si estamos en página de nota
+  if (isNotePage) {
+    return <>{children}</>;
+  }
 
   return (
-    <div className="app-container">
+    <div className={`app-container ${darkMode ? "dark-theme" : ""}`}>
       <div className={`sidebar ${sidebarOpen ? "open" : "closed"}`}>
         <div className="sidebar-header">
           <h2 className="app-logo">
@@ -33,7 +73,8 @@ export default function MainLayout({ children }: Props) {
           </h2>
           <button
             className="toggle-sidebar"
-            onClick={() => setSidebarOpen(!sidebarOpen)}
+            onClick={toggleSidebar}
+            aria-label="Toggle sidebar"
           >
             {sidebarOpen ? "◀" : "▶"}
           </button>
@@ -45,8 +86,18 @@ export default function MainLayout({ children }: Props) {
             className={`nav-item ${location.pathname === "/" ? "active" : ""}`}
           >
             <span className="nav-icon">🏠</span>
-            {sidebarOpen && <span className="nav-text">Notes</span>}
+            {sidebarOpen && <span className="nav-text">Notas</span>}
           </Link>
+
+          {sidebarOpen && (
+            <div className="nav-section">
+              <div className="nav-section-title">Acciones</div>
+              <button className="nav-item action-nav-item">
+                <span className="nav-icon">✨</span>
+                <span className="nav-text">Nueva nota</span>
+              </button>
+            </div>
+          )}
         </div>
 
         {sidebarOpen && (
@@ -76,7 +127,7 @@ export default function MainLayout({ children }: Props) {
         <div className="content-header">
           <div className="breadcrumb">
             {location.pathname === "/" ? (
-              <span className="breadcrumb-item">Notas</span>
+              <span className="breadcrumb-item current">Notas</span>
             ) : (
               <>
                 <Link to="/" className="breadcrumb-item">
@@ -91,8 +142,16 @@ export default function MainLayout({ children }: Props) {
           </div>
 
           <div className="user-actions">
-            <button className="icon-button search-button">🔍</button>
-            <button className="icon-button theme-button">🌙</button>
+            <button className="icon-button search-button" aria-label="Search">
+              🔍
+            </button>
+            <button
+              className="icon-button theme-button"
+              onClick={toggleTheme}
+              aria-label="Toggle theme"
+            >
+              {darkMode ? "☀️" : "🌙"}
+            </button>
           </div>
         </div>
 
