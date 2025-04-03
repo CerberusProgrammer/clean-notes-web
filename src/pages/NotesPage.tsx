@@ -103,7 +103,7 @@ const NoteCard = memo(
               e.stopPropagation();
               onSelect(note.id);
             }}
-            className="action-button view-button"
+            className="view-button"
             aria-label="Editar nota"
           >
             <span className="button-icon">✎</span>
@@ -114,7 +114,7 @@ const NoteCard = memo(
               e.stopPropagation();
               onDelete(note.id);
             }}
-            className="action-button delete-button"
+            className="delete-button"
             aria-label="Eliminar nota"
           >
             <span className="button-icon">🗑</span>
