@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { NotesContext } from "../provider/NotesContext";
 import { NotesService } from "../provider/NotesService";
 import DropdownMenu from "../components/DropdownMenu";
+import { useTranslation } from "../i18n/locales/i18nHooks";
 import "./MainLayout.css";
 
 type Props = {
@@ -13,6 +14,7 @@ export default function MainLayout({ children }: Props) {
   const location = useLocation();
   const navigate = useNavigate();
   const { state, dispatch } = useContext(NotesContext);
+  const { t, locale, changeLocale } = useTranslation();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mounted, setMounted] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -86,6 +88,11 @@ export default function MainLayout({ children }: Props) {
     }
   };
 
+  const toggleLanguage = () => {
+    const newLocale = locale === "es" ? "en" : "es";
+    changeLocale(newLocale);
+  };
+
   const toggleBookExpansion = (bookId: string, e: React.MouseEvent) => {
     e.stopPropagation();
     const newExpandedState = {
@@ -130,11 +137,7 @@ export default function MainLayout({ children }: Props) {
   };
 
   const handleDeleteBook = async (bookId: string) => {
-    if (
-      window.confirm(
-        "¿Estás seguro? Se eliminarán todas las notas contenidas en este libro."
-      )
-    ) {
+    if (window.confirm(t.books.confirmDeleteBook)) {
       try {
         await NotesService.deleteBook(bookId);
         dispatch({
@@ -174,7 +177,7 @@ export default function MainLayout({ children }: Props) {
     try {
       const newNote = await NotesService.addNote({
         bookId,
-        content: "# Nueva nota\n\nEscribe aquí el contenido de tu nota...",
+        content: `# ${t.notes.newNote}\n\n${t.notes.startWriting}`,
       });
 
       dispatch({
@@ -278,7 +281,7 @@ export default function MainLayout({ children }: Props) {
         <div className="sidebar-header">
           <h1 className="app-logo">
             <span className="logo-icon">📝</span>
-            {sidebarOpen && <span className="logo-text">Clean Notes</span>}
+            {sidebarOpen && <span className="logo-text">{t.app.name}</span>}
           </h1>
           <button
             className="toggle-sidebar"
@@ -296,7 +299,7 @@ export default function MainLayout({ children }: Props) {
                 onClick={() => setNewBookModalOpen(true)}
                 className="add-book-button"
               >
-                <span>+ Nuevo libro</span>
+                <span>{t.books.newBook}</span>
               </button>
             </div>
           )}
@@ -304,12 +307,12 @@ export default function MainLayout({ children }: Props) {
           {state.books.length === 0 ? (
             sidebarOpen && (
               <div className="no-books-message">
-                <p>Aún no tienes ningún libro</p>
+                <p>{t.books.noBooks}</p>
                 <button
                   onClick={() => setNewBookModalOpen(true)}
                   className="create-first-book-button"
                 >
-                  Crear primer libro
+                  {t.books.createFirstBook}
                 </button>
               </div>
             )
@@ -351,7 +354,7 @@ export default function MainLayout({ children }: Props) {
                               state.notes.filter((n) => n.bookId === book.id)
                                 .length
                             }{" "}
-                            notas
+                            {t.books.notesInBook}
                           </span>
                         </div>
                       )}
@@ -365,12 +368,12 @@ export default function MainLayout({ children }: Props) {
                           }
                           items={[
                             {
-                              label: "Nueva nota",
+                              label: t.notes.newNote,
                               icon: "📝",
                               onClick: () => handleCreateNote(book.id),
                             },
                             {
-                              label: "Editar libro",
+                              label: t.books.editBook,
                               icon: "✏️",
                               onClick: () => {
                                 setNewBookName(book.name);
@@ -379,7 +382,7 @@ export default function MainLayout({ children }: Props) {
                               },
                             },
                             {
-                              label: "Eliminar libro",
+                              label: t.books.deleteBook,
                               icon: "🗑️",
                               onClick: () => handleDeleteBook(book.id),
                               danger: true,
@@ -395,12 +398,12 @@ export default function MainLayout({ children }: Props) {
                       {state.notes.filter((note) => note.bookId === book.id)
                         .length === 0 ? (
                         <div className="empty-book-message">
-                          <span>No hay notas en este libro</span>
+                          <span>{t.notes.noNotesInBook}</span>
                           <button
                             onClick={() => handleCreateNote(book.id)}
                             className="create-note-button-small"
                           >
-                            + Nueva nota
+                            + {t.notes.newNote}
                           </button>
                         </div>
                       ) : (
@@ -424,7 +427,7 @@ export default function MainLayout({ children }: Props) {
                                 </span>
                                 <span className="note-date">
                                   {new Date(note.updatedAt).toLocaleDateString(
-                                    "es-ES",
+                                    locale === "es" ? "es-ES" : "en-US",
                                     {
                                       month: "short",
                                       day: "numeric",
@@ -444,7 +447,7 @@ export default function MainLayout({ children }: Props) {
 
           <div className="nav-section">
             <div className="nav-section-title">
-              {sidebarOpen ? "NAVEGACIÓN" : ""}
+              {sidebarOpen ? t.books.title : ""}
             </div>
             <Link
               to="/"
@@ -456,7 +459,9 @@ export default function MainLayout({ children }: Props) {
               }
             >
               <span className="nav-icon">🏠</span>
-              {sidebarOpen && <span className="nav-text">Todas las notas</span>}
+              {sidebarOpen && (
+                <span className="nav-text">{t.app.allNotes}</span>
+              )}
             </Link>
           </div>
         </div>
@@ -464,23 +469,42 @@ export default function MainLayout({ children }: Props) {
         {sidebarOpen && (
           <div className="sidebar-footer">
             <div className="time-display">
-              {currentTime.toLocaleTimeString("es-ES", {
-                hour: "2-digit",
-                minute: "2-digit",
-              })}
+              {currentTime.toLocaleTimeString(
+                locale === "es" ? "es-ES" : "en-US",
+                {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                }
+              )}
             </div>
             <div className="date-display">
-              {currentTime.toLocaleDateString("es-ES", {
-                weekday: "long",
-                month: "long",
-                day: "numeric",
-              })}
+              {currentTime.toLocaleDateString(
+                locale === "es" ? "es-ES" : "en-US",
+                {
+                  weekday: "long",
+                  month: "long",
+                  day: "numeric",
+                }
+              )}
             </div>
             <div className="user-actions">
               <button
                 className="icon-button"
+                onClick={toggleLanguage}
+                aria-label={
+                  locale === "es" ? "Switch to English" : "Cambiar a Español"
+                }
+                title={
+                  locale === "es" ? "Switch to English" : "Cambiar a Español"
+                }
+              >
+                {locale === "es" ? "🇬🇧" : "🇪🇸"}
+              </button>
+              <button
+                className="icon-button"
                 onClick={toggleTheme}
-                aria-label="Toggle theme"
+                aria-label={darkMode ? t.ui.lightMode : t.ui.darkMode}
+                title={darkMode ? t.ui.lightMode : t.ui.darkMode}
               >
                 {darkMode ? "☀️" : "🌙"}
               </button>
@@ -509,11 +533,11 @@ export default function MainLayout({ children }: Props) {
             className="modal-content book-modal"
             onClick={(e) => e.stopPropagation()}
           >
-            <h3>{editingBook ? "Editar libro" : "Crear nuevo libro"}</h3>
+            <h3>{editingBook ? t.books.editBook : t.books.createBook}</h3>
 
             <div className="book-form">
               <div className="form-group">
-                <label htmlFor="book-name">Nombre del libro</label>
+                <label htmlFor="book-name">{t.books.bookName}</label>
                 <input
                   id="book-name"
                   type="text"
@@ -525,7 +549,7 @@ export default function MainLayout({ children }: Props) {
               </div>
 
               <div className="form-group">
-                <label>Ícono</label>
+                <label>{t.books.bookIcon}</label>
                 <div className="emoji-picker">
                   {[
                     "📓",
@@ -571,7 +595,7 @@ export default function MainLayout({ children }: Props) {
                 }}
                 className="secondary-button"
               >
-                Cancelar
+                {t.common.cancel}
               </button>
 
               <button
@@ -586,10 +610,10 @@ export default function MainLayout({ children }: Props) {
                 className="primary-button"
               >
                 {isCreatingBook
-                  ? "Guardando..."
+                  ? t.common.saving
                   : editingBook
-                  ? "Guardar cambios"
-                  : "Crear libro"}
+                  ? t.books.saveChanges
+                  : t.books.createBook}
               </button>
             </div>
           </div>
