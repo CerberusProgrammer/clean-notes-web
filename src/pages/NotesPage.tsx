@@ -1,10 +1,11 @@
 import { useContext, useEffect, useState, useRef, memo, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { NotesContext } from "../provider/NotesContext";
 import { NotesService } from "../provider/NotesService";
 import { useTranslation } from "../i18n/locales/i18nHooks";
-import "./NotesPage.css";
+import { Book } from "../provider/Note";
 import { NoteCard } from "../components/NoteCard";
+import "./NotesPage.css";
 
 const EmptyState = memo(
   ({
@@ -15,7 +16,7 @@ const EmptyState = memo(
   }: {
     searchTerm: string;
     onClearSearch: () => void;
-    currentBook: any | null;
+    currentBook: Book | null;
     onCreateNote: () => void;
   }) => {
     const { t } = useTranslation();
@@ -59,20 +60,41 @@ const EmptyState = memo(
 );
 
 export default function NotesPage() {
+  const { bookId } = useParams<{ bookId?: string }>();
   const { state, dispatch } = useContext(NotesContext);
   const navigate = useNavigate();
   const { t } = useTranslation();
   const [newNoteContent, setNewNoteContent] = useState("");
   const [isLoading, setIsLoading] = useState(state.notes.length === 0);
   const [isCreating, setIsCreating] = useState(false);
-  const [view, setView] = useState<"grid" | "list">("grid");
+  const [view, setView] = useState<"grid" | "list">(
+    () =>
+      (localStorage.getItem("cleanNotes-defaultView") as "grid" | "list") ||
+      "grid"
+  );
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState<"newest" | "oldest" | "updated">(
-    "newest"
+    () =>
+      (localStorage.getItem("cleanNotes-defaultSort") as
+        | "newest"
+        | "oldest"
+        | "updated") || "newest"
   );
   const [showCreateForm, setShowCreateForm] = useState(false);
   const newNoteRef = useRef<HTMLTextAreaElement>(null);
   const createSectionRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (bookId && bookId !== state.selectedBookId) {
+      const bookExists = state.books.some((book) => book.id === bookId);
+
+      if (bookExists) {
+        dispatch({ type: "SELECT_BOOK", payload: { id: bookId } });
+      } else if (state.books.length > 0) {
+        navigate("/");
+      }
+    }
+  }, [bookId, state.books, dispatch, navigate, state.selectedBookId]);
 
   useEffect(() => {
     if (showCreateForm && newNoteRef.current) {
@@ -199,7 +221,6 @@ export default function NotesPage() {
       const noteElement = document.querySelector(`[data-note-id="${id}"]`);
       if (noteElement) {
         noteElement.classList.add("deleting");
-        await new Promise((resolve) => setTimeout(resolve, 300));
       }
 
       await NotesService.deleteNote(id);
@@ -211,42 +232,65 @@ export default function NotesPage() {
 
   const getCurrentBook = () => {
     if (!state.selectedBookId) return null;
-    return state.books.find((b) => b.id === state.selectedBookId);
+    return state.books.find((b) => b.id === state.selectedBookId) || null;
   };
 
   const currentBook = getCurrentBook();
+
+  const handleViewChange = (newView: "grid" | "list") => {
+    setView(newView);
+    localStorage.setItem("cleanNotes-defaultView", newView);
+  };
+
+  const handleSortChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newSort = e.target.value as "newest" | "oldest" | "updated";
+    setSortBy(newSort);
+    localStorage.setItem("cleanNotes-defaultSort", newSort);
+  };
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(e.target.value);
+  };
+
+  const clearSearch = () => {
+    setSearchTerm("");
+  };
+
+  if (isLoading) {
+    return <></>;
+  }
 
   return (
     <div className="notes-page">
       <div className="page-header">
         <div className="page-title-section">
           {currentBook ? (
-            <h1>
-              <span className="book-emoji-title">{currentBook.emoji}</span>
-              {currentBook.name}
-            </h1>
+            <>
+              <h1 className="book-emoji-title">
+                <span>{currentBook.emoji}</span>
+                {currentBook.name}
+              </h1>
+              <p className="subtitle">
+                {filteredAndSortedNotes.length} {t.books.notesInBook}
+              </p>
+            </>
           ) : (
-            <h1>{t.app.allNotes}</h1>
+            <>
+              <h1>{t.app.allNotes}</h1>
+              <p className="subtitle">
+                {filteredAndSortedNotes.length} {t.notes.sortNewest}
+              </p>
+            </>
           )}
-          <p className="subtitle">
-            {currentBook
-              ? `${filteredAndSortedNotes.length} ${
-                  filteredAndSortedNotes.length === 1
-                    ? t.books.notesInBook.slice(0, -1)
-                    : t.books.notesInBook
-                } ${t.notes.noNotesInBook.toLowerCase().split(" ").pop()}`
-              : t.app.organize}
-          </p>
         </div>
-
         <div className="header-actions">
           <button
-            onClick={handleCreateNewNote}
             className="create-note-button"
-            aria-label={t.notes.createNote}
+            onClick={handleCreateNewNote}
+            aria-label={t.notes.newNote}
           >
             <span className="button-icon">+</span>
-            <span className="button-text">{t.notes.newNote}</span>
+            <span>{t.notes.newNote}</span>
           </button>
         </div>
       </div>
@@ -257,71 +301,45 @@ export default function NotesPage() {
             className={`note-form-container ${isCreating ? "creating" : ""}`}
           >
             <div className="form-header">
-              <h2>
-                {currentBook
-                  ? `${t.notes.createNote} ${currentBook.emoji} ${currentBook.name}`
-                  : t.notes.createNote}
-              </h2>
+              <h2>{t.notes.createNote}</h2>
               <button
                 className="close-form-button"
                 onClick={handleCancelCreate}
                 aria-label={t.common.cancel}
               >
-                ✕
+                ×
               </button>
             </div>
-
             <textarea
               ref={newNoteRef}
               value={newNoteContent}
               onChange={(e) => setNewNoteContent(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder={`# ${t.notes.noteTitle}
-              
-${t.notes.startWriting}
-- ${t.editor.textFormatting} **${t.common.edit}**
-- ${t.editor.lists}
-- ${t.editor.quotes}
-
-> ${t.editor.quotes}`}
-              rows={8}
-              disabled={isCreating}
               className="new-note-textarea"
+              placeholder={t.notes.noteTitle}
+              disabled={isCreating}
             />
-
             <div className="form-actions">
               <div className="note-form-meta">
-                {newNoteContent.length > 0 && (
-                  <span className="char-count">
-                    {newNoteContent.length} {t.notes.characters}
-                  </span>
-                )}
+                <span className="char-count">
+                  {newNoteContent.length} {t.notes.characters}
+                </span>
                 <span className="keyboard-hint">{t.notes.ctrlEnterCreate}</span>
               </div>
               <div className="form-buttons">
                 <button
-                  onClick={handleCancelCreate}
                   className="secondary-button"
+                  onClick={handleCancelCreate}
                   disabled={isCreating}
                 >
                   {t.common.cancel}
                 </button>
                 <button
+                  className="primary-button"
                   onClick={handleAddNote}
-                  disabled={isCreating || newNoteContent.trim().length === 0}
-                  className="primary-button with-icon"
+                  disabled={!newNoteContent.trim() || isCreating}
                 >
-                  {isCreating ? (
-                    <>
-                      <span className="button-icon loading"></span>
-                      {t.common.saving}
-                    </>
-                  ) : (
-                    <>
-                      <span className="button-icon">✓</span>
-                      {t.notes.createNote}
-                    </>
-                  )}
+                  {isCreating ? t.common.saving : t.common.create}
                 </button>
               </div>
             </div>
@@ -334,63 +352,59 @@ ${t.notes.startWriting}
           <span className="search-icon">🔍</span>
           <input
             type="text"
-            placeholder={
-              currentBook
-                ? `${t.common.search} ${currentBook.name}...`
-                : `${t.common.search} ${t.notes.newNote.toLowerCase()}...`
-            }
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={handleSearchChange}
+            placeholder={t.common.search}
             className="search-input"
+            aria-label={t.common.search}
           />
           {searchTerm && (
-            <button className="clear-search" onClick={() => setSearchTerm("")}>
-              ✕
+            <button
+              className="clear-search"
+              onClick={clearSearch}
+              aria-label="Limpiar búsqueda"
+            >
+              ×
             </button>
           )}
         </div>
-
         <div className="view-and-sort">
           <div className="view-options">
             <button
               className={`view-option ${view === "grid" ? "active" : ""}`}
-              onClick={() => setView("grid")}
-              aria-label="Vista de cuadrícula"
+              onClick={() => handleViewChange("grid")}
+              aria-label={t.settings.grid}
+              title={t.settings.grid}
             >
               <span className="view-icon">▣</span>
             </button>
             <button
               className={`view-option ${view === "list" ? "active" : ""}`}
-              onClick={() => setView("list")}
-              aria-label="Vista de lista"
+              onClick={() => handleViewChange("list")}
+              aria-label={t.settings.list}
+              title={t.settings.list}
             >
               <span className="view-icon">☰</span>
             </button>
           </div>
-
           <select
             className="sort-selector"
             value={sortBy}
-            onChange={(e) => setSortBy(e.target.value as any)}
-            aria-label="Ordenar por"
+            onChange={handleSortChange}
+            aria-label={t.settings.defaultSort}
           >
             <option value="newest">{t.notes.sortNewest}</option>
             <option value="oldest">{t.notes.sortOldest}</option>
-            <option value="updated">{t.notes.sortUpdated}</option>
+            <option value="updated">{t.notes.recentlyUpdated}</option>
           </select>
         </div>
       </div>
 
       <div className={`notes-container ${view}`}>
-        {isLoading ? (
-          <div className="loading-state">
-            <div className="loading-spinner"></div>
-            <p>{t.notes.loading}</p>
-          </div>
-        ) : filteredAndSortedNotes.length === 0 ? (
+        {filteredAndSortedNotes.length === 0 ? (
           <EmptyState
             searchTerm={searchTerm}
-            onClearSearch={() => setSearchTerm("")}
+            onClearSearch={clearSearch}
             currentBook={currentBook}
             onCreateNote={handleCreateNewNote}
           />
@@ -409,9 +423,9 @@ ${t.notes.startWriting}
       {!showCreateForm && filteredAndSortedNotes.length > 0 && (
         <div className="floating-action">
           <button
-            onClick={handleCreateNewNote}
             className="floating-create-button"
-            aria-label={t.notes.createNote}
+            onClick={handleCreateNewNote}
+            aria-label={t.notes.newNote}
           >
             +
           </button>
