@@ -31,6 +31,7 @@ export default function MainLayout({ children }: Props) {
   const [draggedNoteId, setDraggedNoteId] = useState<string | null>(null);
 
   const isNotePage = location.pathname.includes("/note/");
+  const isSettingsPage = location.pathname.includes("/settings");
   const currentNoteId = isNotePage ? location.pathname.split("/").pop() : null;
 
   useEffect(() => {
@@ -45,6 +46,12 @@ export default function MainLayout({ children }: Props) {
       setDarkMode(true);
       document.body.classList.add("dark-theme");
     }
+
+    const handleThemeChange = (e: CustomEvent) => {
+      setDarkMode(e.detail.isDark);
+    };
+
+    window.addEventListener("themechange", handleThemeChange as EventListener);
 
     const savedExpandedState = localStorage.getItem("cleanNotes-expandedBooks");
     if (savedExpandedState) {
@@ -68,7 +75,13 @@ export default function MainLayout({ children }: Props) {
       setSidebarOpen(savedSidebarState !== "closed");
     }
 
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener(
+        "themechange",
+        handleThemeChange as EventListener
+      );
+    };
   }, [isNotePage, state.books]);
 
   const toggleSidebar = () => {
@@ -78,14 +91,19 @@ export default function MainLayout({ children }: Props) {
   };
 
   const toggleTheme = () => {
-    setDarkMode(!darkMode);
-    if (!darkMode) {
+    const newDarkMode = !darkMode;
+    setDarkMode(newDarkMode);
+    if (newDarkMode) {
       document.body.classList.add("dark-theme");
       localStorage.setItem("cleanNotes-theme", "dark");
     } else {
       document.body.classList.remove("dark-theme");
       localStorage.setItem("cleanNotes-theme", "light");
     }
+
+    window.dispatchEvent(
+      new CustomEvent("themechange", { detail: { isDark: newDarkMode } })
+    );
   };
 
   const toggleLanguage = () => {
@@ -293,6 +311,39 @@ export default function MainLayout({ children }: Props) {
         </div>
 
         <div className="sidebar-nav">
+          <div className="nav-section">
+            <div className="nav-section-title">
+              {sidebarOpen ? t.app.organize : ""}
+            </div>
+
+            <Link
+              to="/"
+              className={`nav-item ${
+                location.pathname === "/" && !state.selectedBookId
+                  ? "active"
+                  : ""
+              }`}
+              onClick={() =>
+                dispatch({ type: "SELECT_BOOK", payload: { id: "" } })
+              }
+            >
+              <span className="nav-icon">🏠</span>
+              {sidebarOpen && (
+                <span className="nav-text">{t.app.allNotes}</span>
+              )}
+            </Link>
+
+            <Link
+              to="/settings"
+              className={`nav-item ${isSettingsPage ? "active" : ""}`}
+            >
+              <span className="nav-icon">⚙️</span>
+              {sidebarOpen && (
+                <span className="nav-text">{t.settings.title}</span>
+              )}
+            </Link>
+          </div>
+
           {sidebarOpen && (
             <div className="sidebar-actions">
               <button
@@ -318,6 +369,9 @@ export default function MainLayout({ children }: Props) {
             )
           ) : (
             <div className="books-section">
+              <div className="nav-section-title">
+                {sidebarOpen ? t.books.title : ""}
+              </div>
               {state.books.map((book) => (
                 <div key={book.id} className="book-item">
                   <div
@@ -444,26 +498,6 @@ export default function MainLayout({ children }: Props) {
               ))}
             </div>
           )}
-
-          <div className="nav-section">
-            <div className="nav-section-title">
-              {sidebarOpen ? t.books.title : ""}
-            </div>
-            <Link
-              to="/"
-              className={`nav-item ${
-                location.pathname === "/" ? "active" : ""
-              }`}
-              onClick={() =>
-                dispatch({ type: "SELECT_BOOK", payload: { id: "" } })
-              }
-            >
-              <span className="nav-icon">🏠</span>
-              {sidebarOpen && (
-                <span className="nav-text">{t.app.allNotes}</span>
-              )}
-            </Link>
-          </div>
         </div>
 
         {sidebarOpen && (
@@ -543,7 +577,11 @@ export default function MainLayout({ children }: Props) {
                   type="text"
                   value={newBookName}
                   onChange={(e) => setNewBookName(e.target.value)}
-                  placeholder="Ej: Proyectos, Diario, Ideas..."
+                  placeholder={
+                    locale === "es"
+                      ? "Ej: Proyectos, Diario, Ideas..."
+                      : "Ex: Projects, Journal, Ideas..."
+                  }
                   autoFocus
                 />
               </div>
