@@ -1,4 +1,4 @@
-import { useState, useContext } from "react";
+import { useState, useContext, useEffect } from "react";
 import { NotesContext } from "../provider/NotesContext";
 import { useTranslation } from "../i18n/locales/i18nHooks";
 import { LocaleCode } from "../i18n/locales/locales";
@@ -40,6 +40,26 @@ export default function SettingsPage() {
 
   const [showSuccess, setShowSuccess] = useState(false);
 
+  // Sincronizar con los cambios externos
+  useEffect(() => {
+    setLanguage(locale);
+  }, [locale]);
+
+  useEffect(() => {
+    const handleThemeChange = (e: CustomEvent) => {
+      setDarkMode(e.detail.isDark);
+    };
+
+    window.addEventListener("themechange", handleThemeChange as EventListener);
+
+    return () => {
+      window.removeEventListener(
+        "themechange",
+        handleThemeChange as EventListener
+      );
+    };
+  }, []);
+
   // Aplicar cambio de tema inmediatamente
   const handleThemeChange = (isDark: boolean) => {
     setDarkMode(isDark);
@@ -59,10 +79,8 @@ export default function SettingsPage() {
 
   // Función para guardar todas las configuraciones
   const saveSettings = () => {
-    // Guardar idioma
+    // Cambiar idioma directamente, sin esperar a la persistencia
     changeLocale(language);
-
-    // El tema ya se ha guardado en handleThemeChange
 
     // Guardar vista por defecto
     localStorage.setItem("cleanNotes-defaultView", defaultView);
@@ -143,7 +161,7 @@ export default function SettingsPage() {
 
         // Implementar lógica para combinar o reemplazar datos existentes
         const confirmed = window.confirm(
-          locale === "es"
+          language === "es"
             ? "¿Deseas reemplazar todos tus datos actuales con los importados? Si seleccionas 'No', se importarán como adicionales."
             : "Do you want to replace all your current data with the imported ones? If you select 'No', they will be imported as additional data."
         );
@@ -211,7 +229,7 @@ export default function SettingsPage() {
       } catch (error) {
         console.error("Error al importar datos:", error);
         alert(
-          locale === "es"
+          language === "es"
             ? "Error al importar: Formato de archivo inválido"
             : "Import error: Invalid file format"
         );
@@ -236,6 +254,12 @@ export default function SettingsPage() {
         console.error("Error al borrar datos:", error);
       }
     }
+  };
+
+  // Función para cambiar idioma directamente (similar a MainLayout)
+  const handleLanguageChange = (selectedLanguage: LocaleCode) => {
+    setLanguage(selectedLanguage);
+    changeLocale(selectedLanguage); // Aplicar cambio inmediatamente
   };
 
   return (
@@ -263,7 +287,9 @@ export default function SettingsPage() {
               <select
                 className="settings-select"
                 value={language}
-                onChange={(e) => setLanguage(e.target.value as LocaleCode)}
+                onChange={(e) =>
+                  handleLanguageChange(e.target.value as LocaleCode)
+                }
               >
                 <option value="es">{t.settings.spanish}</option>
                 <option value="en">{t.settings.english}</option>
@@ -332,9 +358,9 @@ export default function SettingsPage() {
                   )
                 }
               >
-                <option value="newest">{t.notes.sortNewest}</option>
-                <option value="oldest">{t.notes.sortOldest}</option>
-                <option value="updated">{t.notes.sortUpdated}</option>
+                <option value="newest">{t.settings.sortNewest}</option>
+                <option value="oldest">{t.settings.sortOldest}</option>
+                <option value="updated">{t.settings.sortUpdated}</option>
               </select>
             </div>
           </div>
@@ -507,7 +533,7 @@ export default function SettingsPage() {
               target="_blank"
               rel="noopener noreferrer"
             >
-              Sazardev
+              Clean Notes Team
             </a>
           </p>
         </div>
