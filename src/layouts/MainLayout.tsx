@@ -45,15 +45,7 @@ export default function MainLayout({ children }: Props) {
             className={`nav-item ${location.pathname === "/" ? "active" : ""}`}
           >
             <span className="nav-icon">🏠</span>
-            {sidebarOpen && <span className="nav-text">Inicio</span>}
-          </Link>
-          <Link to="/favorites" className="nav-item">
-            <span className="nav-icon">⭐</span>
-            {sidebarOpen && <span className="nav-text">Favoritos</span>}
-          </Link>
-          <Link to="/archive" className="nav-item">
-            <span className="nav-icon">🗄️</span>
-            {sidebarOpen && <span className="nav-text">Archivo</span>}
+            {sidebarOpen && <span className="nav-text">Notes</span>}
           </Link>
         </div>
 
