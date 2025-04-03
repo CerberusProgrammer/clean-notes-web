@@ -1,15 +1,18 @@
 import { createBrowserRouter } from "react-router-dom";
 import NotesProvider from "../provider/NotesProvider";
 import { routes } from "./router";
+import MainLayout from "../layouts/MainLayout";
 
-// Wrapper para cada ruta que proporciona el NotesProvider
+// Wrapper para cada ruta que proporciona el NotesProvider y el MainLayout
 const RouteWithProvider = ({
   Component,
 }: {
   Component: React.ComponentType;
 }) => (
   <NotesProvider>
-    <Component />
+    <MainLayout>
+      <Component />
+    </MainLayout>
   </NotesProvider>
 );
 
