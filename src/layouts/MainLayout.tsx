@@ -88,16 +88,6 @@ export default function MainLayout({ children }: Props) {
             <span className="nav-icon">🏠</span>
             {sidebarOpen && <span className="nav-text">Notas</span>}
           </Link>
-
-          {sidebarOpen && (
-            <div className="nav-section">
-              <div className="nav-section-title">Acciones</div>
-              <button className="nav-item action-nav-item">
-                <span className="nav-icon">✨</span>
-                <span className="nav-text">Nueva nota</span>
-              </button>
-            </div>
-          )}
         </div>
 
         {sidebarOpen && (
