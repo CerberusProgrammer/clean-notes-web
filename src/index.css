@@ -1,14 +1,15 @@
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap");
 
 :root {
-  --background: #f9fafb;
-  --surface: #ffffff;
-  --sidebar-bg: #f1f5f9;
-  --sidebar-active: #e0e7ff;
+  /* Variables base (tema azul predeterminado) */
   --primary: #3b82f6;
   --primary-dark: #2563eb;
   --primary-light: #dbeafe;
   --secondary: #6366f1;
+  --background: #f9fafb;
+  --surface: #ffffff;
+  --sidebar-bg: #f1f5f9;
+  --sidebar-active: #e0e7ff;
   --text-primary: #111827;
   --text-secondary: #4b5563;
   --text-tertiary: #9ca3af;
@@ -58,6 +59,35 @@
   --transition-bounce: 0.5s cubic-bezier(0.18, 1.25, 0.4, 1);
 }
 
+/* Variables para el tema morado */
+.purple-theme {
+  --primary: #8b5cf6;
+  --primary-dark: #6d28d9;
+  --primary-light: #ede9fe;
+  --secondary: #a78bfa;
+  --sidebar-active: #ddd6fe;
+  --gradient-primary: linear-gradient(
+    135deg,
+    var(--primary) 0%,
+    var(--secondary) 100%
+  );
+  --gradient-subtle: linear-gradient(
+    135deg,
+    var(--primary-light) 0%,
+    #e5e0ff 100%
+  );
+  --focus-ring: 0 0 0 2px var(--primary-light);
+}
+
+/* El tema morado en modo oscuro puede necesitar ajustes específicos */
+.dark-theme.purple-theme {
+  --primary: #a78bfa;
+  --primary-dark: #8b5cf6;
+  --primary-light: #4c1d95;
+  --secondary: #c4b5fd;
+  --sidebar-active: #4c1d95;
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -70,6 +100,7 @@
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+/* El resto del CSS existente se mantiene igual */
 html {
   font-size: 16px;
 }
