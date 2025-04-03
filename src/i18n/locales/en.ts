@@ -121,5 +121,8 @@ export default {
     successMessage: "Settings saved successfully",
     confirmClear:
       "Are you sure you want to clear all your data? This action cannot be undone.",
+    colorTheme: "Color scheme",
+    blueTheme: "Blue theme",
+    purpleTheme: "Purple theme",
   },
 };
