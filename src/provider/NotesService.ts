@@ -299,4 +299,11 @@ export class NotesService {
 
     return book || null;
   }
+
+  static async clearData(): Promise<void> {
+    // Simulación de tiempo de carga
+    await new Promise((resolve) => setTimeout(resolve, 150));
+
+    localStorage.removeItem(STORAGE_KEY);
+  }
 }
