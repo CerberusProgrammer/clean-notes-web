@@ -1,0 +1,26 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Variables de color para fácil personalización -->
+  <defs>
+    <linearGradient id="noteGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3b82f6" />
+      <stop offset="100%" stop-color="#2563eb" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Fondo transparente para mejor integración -->
+  <rect width="512" height="512" fill="none" />
+  
+  <!-- Forma principal de la nota con esquina doblada -->
+  <path d="M96 80C96 71.1634 103.163 64 112 64H352C360.837 64 368 71.1634 368 80V336L304 400H112C103.163 400 96 392.837 96 384V80Z" fill="white" stroke="url(#noteGradient)" stroke-width="24" stroke-linejoin="round"/>
+  
+  <!-- Esquina doblada -->
+  <path d="M368 336H304V400L368 336Z" fill="url(#noteGradient)" stroke="url(#noteGradient)" stroke-width="24" stroke-linejoin="round"/>
+  
+  <!-- Líneas de texto minimalistas -->
+  <line x1="144" y1="144" x2="320" y2="144" stroke="url(#noteGradient)" stroke-width="16" stroke-linecap="round" />
+  <line x1="144" y1="200" x2="320" y2="200" stroke="url(#noteGradient)" stroke-width="16" stroke-linecap="round" />
+  <line x1="144" y1="256" x2="256" y2="256" stroke="url(#noteGradient)" stroke-width="16" stroke-linecap="round" />
+  
+  <!-- Pequeño símbolo Markdown (# caracter) para representar la funcionalidad -->
+  <path d="M144 312H152M160 312H168" stroke="url(#noteGradient)" stroke-width="24" stroke-linecap="round" />
+</svg>
