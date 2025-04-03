@@ -5,6 +5,7 @@ import { NotesService } from "../provider/NotesService";
 import DropdownMenu from "../components/DropdownMenu";
 import { useTranslation } from "../i18n/locales/i18nHooks";
 import "./MainLayout.css";
+import { ThemeColor } from "../utils/theme_provider";
 
 type Props = {
   children?: React.ReactNode | React.ReactNode[];
@@ -19,6 +20,8 @@ export default function MainLayout({ children }: Props) {
   const [mounted, setMounted] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [darkMode, setDarkMode] = useState(false);
+  // Añadimos estado para el tema de color
+  const [, setColorTheme] = useState<ThemeColor>("blue");
   const [expandedBooks, setExpandedBooks] = useState<Record<string, boolean>>(
     {}
   );
@@ -41,17 +44,33 @@ export default function MainLayout({ children }: Props) {
       setCurrentTime(new Date());
     }, 60000);
 
+    // Cargar tema claro/oscuro
     const savedTheme = localStorage.getItem("cleanNotes-theme");
     if (savedTheme === "dark") {
       setDarkMode(true);
       document.body.classList.add("dark-theme");
     }
 
+    // Cargar tema de color (ya se inicializa en main.tsx, pero mantenemos la sincronización del estado)
+    const savedColorTheme = localStorage.getItem("cleanNotes-colorTheme");
+    if (savedColorTheme === "purple") {
+      // Solo establecer el estado local, el color ya se carga globalmente
+      setColorTheme("purple");
+    }
+
     const handleThemeChange = (e: CustomEvent) => {
       setDarkMode(e.detail.isDark);
     };
 
+    const handleColorThemeChange = (e: CustomEvent) => {
+      setColorTheme(e.detail.colorTheme);
+    };
+
     window.addEventListener("themechange", handleThemeChange as EventListener);
+    window.addEventListener(
+      "colorthemechange",
+      handleColorThemeChange as EventListener
+    );
 
     const savedExpandedState = localStorage.getItem("cleanNotes-expandedBooks");
     if (savedExpandedState) {
@@ -80,6 +99,10 @@ export default function MainLayout({ children }: Props) {
       window.removeEventListener(
         "themechange",
         handleThemeChange as EventListener
+      );
+      window.removeEventListener(
+        "colorthemechange",
+        handleColorThemeChange as EventListener
       );
     };
   }, [isNotePage, state.books]);
