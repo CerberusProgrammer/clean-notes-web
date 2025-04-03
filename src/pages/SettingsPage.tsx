@@ -465,7 +465,7 @@ export default function SettingsPage() {
             </div>
             <div className="setting-control">
               <a
-                href="https://github.com/usuario/clean-notes"
+                href="https://github.com/cerberusprogrammer/clean-notes-web"
                 target="_blank"
                 rel="noopener noreferrer"
               >
@@ -476,7 +476,6 @@ export default function SettingsPage() {
         </div>
       </div>
 
-      {/* Botones principales */}
       <div className="settings-footer">
         <div>
           <button className="secondary-button" onClick={resetSettings}>
@@ -490,7 +489,6 @@ export default function SettingsPage() {
         </div>
       </div>
 
-      {/* Mensaje de éxito */}
       {showSuccess && (
         <div className="success-message">
           <span>✓</span> {t.settings.successMessage}
@@ -505,11 +503,11 @@ export default function SettingsPage() {
           <p>
             {t.settings.credit}{" "}
             <a
-              href="https://github.com/usuario"
+              href="https://github.com/cerberusprogrammer"
               target="_blank"
               rel="noopener noreferrer"
             >
-              Clean Notes Team
+              Sazardev
             </a>
           </p>
         </div>
