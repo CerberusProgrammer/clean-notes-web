@@ -8,6 +8,10 @@ export const routes = [
     element: NotesPage,
   },
   {
+    path: "/book/:bookId",
+    element: NotesPage,
+  },
+  {
     path: "/note/:id",
     element: NotePage,
   },
