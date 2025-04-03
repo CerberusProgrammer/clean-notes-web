@@ -287,9 +287,9 @@ input:checked + .toggle-slider:before {
 }
 
 .color-theme-option {
-  width: 48px;
-  height: 48px;
-  border-radius: 100%;
+  width: 8px;
+  height: 8px;
+  border-radius: 10%;
   cursor: pointer;
   border: 2px solid transparent;
   transition: all 0.3s ease;
@@ -305,7 +305,6 @@ input:checked + .toggle-slider:before {
 }
 
 .color-theme-option::after {
-  content: "✓";
   position: absolute;
   left: 50%;
   top: 50%;
