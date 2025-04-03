@@ -1,5 +1,6 @@
 import { memo } from "react";
 import { MarkdownPreview } from "./MarkdownPreview";
+import { useTranslation } from "../i18n/locales/i18nHooks";
 
 export const NoteCard = memo(
   ({
@@ -11,6 +12,8 @@ export const NoteCard = memo(
     onSelect: (id: string) => void;
     onDelete: (id: string) => void;
   }) => {
+    const { t, locale } = useTranslation();
+
     const getTimeAgo = (timestamp: number) => {
       const now = Date.now();
       const diff = now - timestamp;
@@ -19,12 +22,22 @@ export const NoteCard = memo(
       const hours = Math.floor(diff / 3600000);
       const days = Math.floor(diff / 86400000);
 
-      if (minutes < 60) {
-        return minutes <= 1 ? "hace 1 minuto" : `hace ${minutes} minutos`;
-      } else if (hours < 24) {
-        return hours === 1 ? "hace 1 hora" : `hace ${hours} horas`;
+      if (locale === "es") {
+        if (minutes < 60) {
+          return minutes <= 1 ? "hace 1 minuto" : `hace ${minutes} minutos`;
+        } else if (hours < 24) {
+          return hours === 1 ? "hace 1 hora" : `hace ${hours} horas`;
+        } else {
+          return days === 1 ? "hace 1 día" : `hace ${days} días`;
+        }
       } else {
-        return days === 1 ? "hace 1 día" : `hace ${days} días`;
+        if (minutes < 60) {
+          return minutes <= 1 ? "1 minute ago" : `${minutes} minutes ago`;
+        } else if (hours < 24) {
+          return hours === 1 ? "1 hour ago" : `${hours} hours ago`;
+        } else {
+          return days === 1 ? "1 day ago" : `${days} days ago`;
+        }
       }
     };
 
@@ -58,7 +71,7 @@ export const NoteCard = memo(
           <div className="note-meta">
             <span className="note-time">{getTimeAgo(note.updatedAt)}</span>
             <span className="note-length">
-              {note.content.length} caracteres
+              {note.content.length} {t.notes.characters}
             </span>
           </div>
         </div>
@@ -69,23 +82,23 @@ export const NoteCard = memo(
               onSelect(note.id);
             }}
             className="view-button"
-            aria-label="Editar nota"
+            aria-label={t.notes.editNote}
           >
             <span className="button-icon">✎</span>
-            <span>Editar</span>
+            <span>{t.common.edit}</span>
           </button>
           <button
             onClick={(e) => {
               e.stopPropagation();
-              if (window.confirm("¿Estás seguro de eliminar esta nota?")) {
+              if (window.confirm(t.notes.confirmDeleteNote)) {
                 onDelete(note.id);
               }
             }}
             className="delete-button"
-            aria-label="Eliminar nota"
+            aria-label={t.notes.deleteNote}
           >
             <span className="button-icon">🗑</span>
-            <span>Eliminar</span>
+            <span>{t.common.delete}</span>
           </button>
         </div>
       </div>
