@@ -1,5 +1,6 @@
 import NotesPage from "../pages/NotesPage";
 import NotePage from "../pages/NotePage";
+import SettingsPage from "../pages/SettingsPage";
 
 export const routes = [
   {
@@ -9,5 +10,9 @@ export const routes = [
   {
     path: "/note/:id",
     element: NotePage,
+  },
+  {
+    path: "/settings",
+    element: SettingsPage,
   },
 ];
