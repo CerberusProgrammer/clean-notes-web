@@ -1,4 +1,3 @@
-import { Note } from "./Note";
 import { NoteAction } from "./NotesActions";
 import { NoteState } from "./NotesState";
 
@@ -7,16 +6,16 @@ export const notesReducer: React.Reducer<NoteState, NoteAction> = (
   action: NoteAction
 ): NoteState => {
   switch (action.type) {
-    case "ADD_NOTE":
-      const newNote: Note = {
-        id: Date.now().toString(),
-        content: action.payload.content,
-        createdAt: Date.now(),
-        updatedAt: Date.now(),
-      };
+    case "LOAD_NOTES":
       return {
         ...state,
-        notes: [...state.notes, newNote],
+        notes: action.payload.notes,
+      };
+    case "ADD_NOTE":
+      // Usar la nota completa proporcionada por el servicio
+      return {
+        ...state,
+        notes: [...state.notes, action.payload.note],
       };
     case "UPDATE_NOTE":
       return {
@@ -35,6 +34,10 @@ export const notesReducer: React.Reducer<NoteState, NoteAction> = (
       return {
         ...state,
         notes: state.notes.filter((note) => note.id !== action.payload.id),
+        selectedNoteId:
+          state.selectedNoteId === action.payload.id
+            ? null
+            : state.selectedNoteId,
       };
     case "SELECT_NOTE":
       return {
