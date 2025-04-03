@@ -121,5 +121,8 @@ export default {
     successMessage: "Configuración guardada correctamente",
     confirmClear:
       "¿Estás seguro de que deseas borrar todos tus datos? Esta acción no se puede deshacer.",
+    colorTheme: "Esquema de color",
+    blueTheme: "Tema azul",
+    purpleTheme: "Tema morado",
   },
 };
