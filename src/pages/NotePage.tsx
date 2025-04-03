@@ -23,14 +23,12 @@ export default function NotePage() {
   const [viewMode, setViewMode] = useState<"edit" | "preview">("edit");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  // Auto-enfoque al cargar
   useEffect(() => {
     if (!loading && textareaRef.current && viewMode === "edit") {
       textareaRef.current.focus();
     }
   }, [loading, viewMode]);
 
-  // Ajustar altura del textarea automáticamente
   useEffect(() => {
     if (textareaRef.current) {
       textareaRef.current.style.height = "auto";
@@ -39,7 +37,6 @@ export default function NotePage() {
     }
   }, [content]);
 
-  // Actualizar contadores
   useEffect(() => {
     setCharCount(content.length);
     setWordCount(
@@ -47,7 +44,6 @@ export default function NotePage() {
     );
   }, [content]);
 
-  // Cargar nota
   useEffect(() => {
     let isMounted = true;
 
@@ -59,7 +55,6 @@ export default function NotePage() {
 
       setLoading(true);
 
-      // Buscar nota en el estado actual
       const note = state.notes.find((note) => note.id === id);
 
       if (note) {
@@ -70,7 +65,6 @@ export default function NotePage() {
           setLoading(false);
         }
       } else {
-        // Si no está en el estado, intentar cargar desde el servicio
         try {
           const fetchedNote = await NotesService.getNoteById(id);
           if (isMounted) {
@@ -108,7 +102,6 @@ export default function NotePage() {
 
   const selectedNote = state.notes.find((note) => note.id === id);
 
-  // Prevenir navegación si hay cambios no guardados
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       if (hasChanges) {
@@ -129,7 +122,7 @@ export default function NotePage() {
     setContent(newContent);
     setHasChanges(selectedNote?.content !== newContent);
 
-    if (hasChanges) {
+    if (selectedNote?.content !== newContent) {
       setSaveStatus("unsaved");
     }
   };
@@ -189,21 +182,18 @@ export default function NotePage() {
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    // Ctrl+S o Command+S para guardar
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") {
       e.preventDefault();
       handleUpdateNote();
       return;
     }
 
-    // Ctrl+B para negrita
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "b") {
       e.preventDefault();
       applyFormat("bold");
       return;
     }
 
-    // Ctrl+I para cursiva
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "i") {
       e.preventDefault();
       applyFormat("italic");
@@ -290,22 +280,18 @@ export default function NotePage() {
     setHasChanges(selectedNote?.content !== newContent);
     setSaveStatus("unsaved");
 
-    // Actualizar la posición del cursor después del render
     setTimeout(() => {
       textarea.focus();
       if (selectedText) {
-        // Si había texto seleccionado, mover el cursor al final del texto formateado
         textarea.selectionStart = start + formattedText.length;
         textarea.selectionEnd = start + formattedText.length;
       } else {
-        // Si no había texto seleccionado, mover el cursor a la posición adecuada
         textarea.selectionStart = newCursorPos;
         textarea.selectionEnd = newCursorPos;
       }
     }, 0);
   };
 
-  // Renderizado simple de Markdown a HTML
   const renderMarkdown = (text: string): string => {
     if (!text) return "";
 
@@ -318,7 +304,6 @@ export default function NotePage() {
         .replace(/'/g, "&#039;");
     };
 
-    // Primero procesamos bloques de código para no afectar su formato
     let codeBlocks: string[] = [];
     text = text.replace(/```([\s\S]*?)```/g, (match) => {
       codeBlocks.push(match);
@@ -327,47 +312,36 @@ export default function NotePage() {
 
     let html = escapeHtml(text);
 
-    // Dividimos el texto en párrafos
     const paragraphs = html.split(/\n\s*\n/g);
     html = paragraphs
       .map((paragraph) => {
-        // Ignoramos los marcadores de bloques de código
         if (paragraph.trim().startsWith("@@CODE_BLOCK_")) {
           return paragraph;
         }
 
-        // Procesamos cada párrafo de forma independiente
         let p = paragraph;
 
-        // Headers
         p = p.replace(/^### (.*?)$/gm, "<h3>$1</h3>");
         p = p.replace(/^## (.*?)$/gm, "<h2>$1</h2>");
         p = p.replace(/^# (.*?)$/gm, "<h1>$1</h1>");
 
-        // Bold
         p = p.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
         p = p.replace(/__(.*?)__/g, "<strong>$1</strong>");
 
-        // Italic
         p = p.replace(/\*(.*?)\*/g, "<em>$1</em>");
         p = p.replace(/_(.*?)_/g, "<em>$1</em>");
 
-        // Inline code
         p = p.replace(/`(.*?)`/g, "<code>$1</code>");
 
-        // Images
         p = p.replace(/!\[(.*?)\]\((.*?)\)/g, '<img src="$2" alt="$1">');
 
-        // Links
         p = p.replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2">$1</a>');
 
-        // Blockquotes
         if (p.startsWith("&gt;")) {
           p = p.replace(/^&gt; (.*?)$/gm, "$1");
           return "<blockquote>" + p + "</blockquote>";
         }
 
-        // Lists - identificar si todo el párrafo es una lista
         const isUnorderedList =
           /^- .*$/gm.test(p) &&
           !p
@@ -409,12 +383,10 @@ export default function NotePage() {
           return "<ol>" + items + "</ol>";
         }
 
-        // Horizontal rule
         if (p.trim() === "---") {
           return "<hr>";
         }
 
-        // Tables
         if (p.includes("|") && p.includes("\n| ---")) {
           const lines = p.split("\n");
           const headerRow = lines[0];
@@ -446,7 +418,6 @@ export default function NotePage() {
           }
         }
 
-        // Si es un encabezado, blockquote, lista, hr o tabla, no lo envolvemos en un párrafo
         if (
           p.startsWith("<h") ||
           p.startsWith("<blockquote") ||
@@ -458,10 +429,8 @@ export default function NotePage() {
           return p;
         }
 
-        // Manejamos saltos de línea dentro del párrafo (pero no al final)
         p = p.replace(/\n/g, "<br>");
 
-        // Envolvemos en párrafo solo si no está ya dentro de una etiqueta HTML
         if (!p.startsWith("<") || !p.endsWith(">")) {
           return `<p>${p}</p>`;
         }
@@ -470,7 +439,6 @@ export default function NotePage() {
       })
       .join("\n\n");
 
-    // Restauramos los bloques de código
     html = html.replace(/@@CODE_BLOCK_(\d+)@@/g, (_, index) => {
       const codeContent = codeBlocks[parseInt(index)].replace(
         /```\s*([\w]*)\n([\s\S]*?)```/g,
@@ -484,6 +452,11 @@ export default function NotePage() {
     });
 
     return html;
+  };
+
+  const getCurrentBook = (bookId: string | undefined) => {
+    if (!bookId) return null;
+    return state.books.find((b) => b.id === bookId);
   };
 
   if (loading) {
@@ -516,6 +489,18 @@ export default function NotePage() {
                 <span className="button-icon">←</span>
                 <span className="button-text">Volver</span>
               </button>
+
+              {selectedNote && (
+                <div className="note-book-indicator">
+                  <span className="book-icon">
+                    {getCurrentBook(selectedNote.bookId)?.emoji || "📓"}
+                  </span>
+                  <span className="book-name">
+                    {getCurrentBook(selectedNote.bookId)?.name || "Sin libro"}
+                  </span>
+                </div>
+              )}
+
               <div className="note-status">
                 <span className={`status-indicator ${saveStatus}`}></span>
                 {saveStatus === "saved" && (
