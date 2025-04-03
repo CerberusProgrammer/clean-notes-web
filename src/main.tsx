@@ -3,6 +3,9 @@ import { createRoot } from "react-dom/client";
 import "./index.css";
 import { RouterProvider } from "react-router-dom";
 import { router } from "./routes/app.routes";
+import { initThemeColor } from "./utils/theme_provider";
+
+initThemeColor();
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
