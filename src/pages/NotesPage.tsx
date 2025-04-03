@@ -4,13 +4,10 @@ import { NotesContext } from "../provider/NotesContext";
 import { NotesService } from "../provider/NotesService";
 import "./NotesPage.css";
 
-// Componente memoizado para previsualización de Markdown
 const MarkdownPreview = memo(({ content }: { content: string }) => {
-  // Versión simplificada del renderizado de Markdown para las tarjetas
   const renderSimpleMarkdown = (text: string) => {
     if (!text) return "";
 
-    // Escapar HTML
     const escaped = text
       .replace(/&/g, "&amp;")
       .replace(/</g, "&lt;")
@@ -18,15 +15,14 @@ const MarkdownPreview = memo(({ content }: { content: string }) => {
       .replace(/"/g, "&quot;")
       .replace(/'/g, "&#039;");
 
-    // Formato básico para la tarjeta
     let html = escaped
-      .replace(/#{1,6} (.+)/gm, "<strong>$1</strong>") // Headers
-      .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>") // Bold
-      .replace(/\*(.*?)\*/g, "<em>$1</em>") // Italic
-      .replace(/`(.*?)`/g, "<code>$1</code>") // Inline code
-      .replace(/!\[(.*?)\]\((.*?)\)/g, "[Imagen]") // Imágenes
-      .replace(/\[(.*?)\]\((.*?)\)/g, "<a>$1</a>") // Enlaces
-      .replace(/^> (.*?)$/gm, "<blockquote>$1</blockquote>"); // Blockquotes
+      .replace(/#{1,6} (.+)/gm, "<strong>$1</strong>")
+      .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
+      .replace(/\*(.*?)\*/g, "<em>$1</em>")
+      .replace(/`(.*?)`/g, "<code>$1</code>")
+      .replace(/!\[(.*?)\]\((.*?)\)/g, "[Imagen]")
+      .replace(/\[(.*?)\]\((.*?)\)/g, "<a>$1</a>")
+      .replace(/^> (.*?)$/gm, "<blockquote>$1</blockquote>");
 
     return html;
   };
@@ -38,7 +34,8 @@ const MarkdownPreview = memo(({ content }: { content: string }) => {
   );
 });
 
-// Componente para tarjeta de nota
+// Actualiza el componente NoteCard con esta implementación completa:
+
 const NoteCard = memo(
   ({
     note,
@@ -71,13 +68,10 @@ const NoteCard = memo(
       return content.substring(0, maxLength);
     };
 
-    // Extraer el título de la nota (primer encabezado o primeras palabras)
     const getNoteTitle = (content: string): string => {
-      // Buscar primer encabezado
       const headerMatch = content.match(/^#+ (.+)$/m);
       if (headerMatch) return headerMatch[1];
 
-      // Si no hay encabezado, usar las primeras palabras
       const firstLine = content.split("\n")[0];
       if (firstLine.length < 50) return firstLine;
       return firstLine.substring(0, 40) + "...";
@@ -136,9 +130,13 @@ const EmptyState = memo(
   ({
     searchTerm,
     onClearSearch,
+    currentBook,
+    onCreateNote,
   }: {
     searchTerm: string;
     onClearSearch: () => void;
+    currentBook: any | null;
+    onCreateNote: () => void;
   }) => {
     if (searchTerm) {
       return (
@@ -155,10 +153,21 @@ const EmptyState = memo(
 
     return (
       <div className="empty-state">
-        <div className="empty-state-icon">📝</div>
-        <h3>No hay notas</h3>
-        <p>Comienza creando tu primera nota</p>
-        <button className="primary-button create-first-note-btn">
+        <div className="empty-state-icon">
+          {currentBook ? currentBook.emoji : "📝"}
+        </div>
+        <h3>
+          {currentBook ? `No hay notas en ${currentBook.name}` : "No hay notas"}
+        </h3>
+        <p>
+          {currentBook
+            ? "Comienza creando tu primera nota en este libro"
+            : "Comienza creando tu primera nota"}
+        </p>
+        <button
+          onClick={onCreateNote}
+          className="primary-button create-first-note-btn"
+        >
           <span className="button-icon">+</span>
           Crear primera nota
         </button>
@@ -182,14 +191,12 @@ export default function NotesPage() {
   const newNoteRef = useRef<HTMLTextAreaElement>(null);
   const createSectionRef = useRef<HTMLDivElement>(null);
 
-  // Auto-focus en el textarea al abrir el formulario
   useEffect(() => {
     if (showCreateForm && newNoteRef.current) {
       newNoteRef.current.focus();
     }
   }, [showCreateForm]);
 
-  // Cargar notas al inicio
   useEffect(() => {
     let isMounted = true;
 
@@ -197,11 +204,11 @@ export default function NotesPage() {
       if (state.notes.length === 0) {
         setIsLoading(true);
         try {
-          const notes = await NotesService.getNotes();
+          const { notes } = await NotesService.getData();
           if (isMounted) {
             dispatch({
-              type: "LOAD_NOTES",
-              payload: { notes },
+              type: "LOAD_DATA",
+              payload: { books: state.books, notes },
             });
           }
         } catch (error) {
@@ -221,9 +228,8 @@ export default function NotesPage() {
     return () => {
       isMounted = false;
     };
-  }, [dispatch, state.notes.length]);
+  }, [dispatch, state.notes.length, state.books]);
 
-  // Scroll al formulario de creación cuando se muestra
   useEffect(() => {
     if (showCreateForm && createSectionRef.current) {
       createSectionRef.current.scrollIntoView({
@@ -233,12 +239,17 @@ export default function NotesPage() {
     }
   }, [showCreateForm]);
 
-  // Filtrar y ordenar notas con useMemo para optimizar rendimiento
   const filteredAndSortedNotes = useMemo(() => {
     return state.notes
-      .filter((note) =>
-        note.content.toLowerCase().includes(searchTerm.toLowerCase())
-      )
+      .filter((note) => {
+        if (state.selectedBookId) {
+          return (
+            note.bookId === state.selectedBookId &&
+            note.content.toLowerCase().includes(searchTerm.toLowerCase())
+          );
+        }
+        return note.content.toLowerCase().includes(searchTerm.toLowerCase());
+      })
       .sort((a, b) => {
         if (sortBy === "newest") {
           return b.createdAt - a.createdAt;
@@ -248,20 +259,27 @@ export default function NotesPage() {
           return b.updatedAt - a.updatedAt;
         }
       });
-  }, [state.notes, searchTerm, sortBy]);
+  }, [state.notes, state.selectedBookId, searchTerm, sortBy]);
 
   const handleAddNote = async () => {
     if (newNoteContent.trim() && !isCreating) {
       setIsCreating(true);
       try {
-        const newNote = await NotesService.addNote({ content: newNoteContent });
+        // Ensure bookId is always a string by providing a default value
+        const bookId =
+          state.selectedBookId ||
+          (state.books.length > 0 ? state.books[0].id : "default");
+
+        const newNote = await NotesService.addNote({
+          content: newNoteContent,
+          bookId,
+        });
 
         dispatch({
           type: "ADD_NOTE",
           payload: { note: newNote },
         });
 
-        // Navegar directamente a la nueva nota
         dispatch({ type: "SELECT_NOTE", payload: { id: newNote.id } });
         navigate(`/note/${newNote.id}`);
       } catch (error) {
@@ -281,7 +299,6 @@ export default function NotesPage() {
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    // Ctrl+Enter o Command+Enter para guardar
     if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
       e.preventDefault();
       handleAddNote();
@@ -300,7 +317,7 @@ export default function NotesPage() {
       const noteElement = document.querySelector(`[data-note-id="${id}"]`);
       if (noteElement) {
         noteElement.classList.add("deleting");
-        await new Promise((resolve) => setTimeout(resolve, 300)); // Esperar a la animación
+        await new Promise((resolve) => setTimeout(resolve, 300));
       }
 
       await NotesService.deleteNote(id);
@@ -310,12 +327,34 @@ export default function NotesPage() {
     }
   };
 
+  const getCurrentBook = () => {
+    if (!state.selectedBookId) return null;
+    return state.books.find((b) => b.id === state.selectedBookId);
+  };
+
+  const currentBook = getCurrentBook();
+
+  // En el componente NotesPage, actualiza la sección de renderizado de la siguiente manera:
+
   return (
     <div className="notes-page">
       <div className="page-header">
         <div className="page-title-section">
-          <h1>Mis Notas</h1>
-          <p className="subtitle">Escribe, organiza y dale forma a tus ideas</p>
+          {currentBook ? (
+            <h1>
+              <span className="book-emoji-title">{currentBook.emoji}</span>
+              {currentBook.name}
+            </h1>
+          ) : (
+            <h1>Todas mis notas</h1>
+          )}
+          <p className="subtitle">
+            {currentBook
+              ? `${filteredAndSortedNotes.length} ${
+                  filteredAndSortedNotes.length === 1 ? "nota" : "notas"
+                } en este libro`
+              : "Organiza y accede a todas tus ideas en un solo lugar"}
+          </p>
         </div>
 
         <div className="header-actions">
@@ -336,7 +375,11 @@ export default function NotesPage() {
             className={`note-form-container ${isCreating ? "creating" : ""}`}
           >
             <div className="form-header">
-              <h2>Crear nueva nota</h2>
+              <h2>
+                {currentBook
+                  ? `Crear nueva nota en ${currentBook.emoji} ${currentBook.name}`
+                  : "Crear nueva nota"}
+              </h2>
               <button
                 className="close-form-button"
                 onClick={handleCancelCreate}
@@ -409,7 +452,11 @@ Comienza a escribir tu nota en Markdown...
           <span className="search-icon">🔍</span>
           <input
             type="text"
-            placeholder="Buscar notas..."
+            placeholder={
+              currentBook
+                ? `Buscar en ${currentBook.name}...`
+                : "Buscar notas..."
+            }
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="search-input"
@@ -462,6 +509,8 @@ Comienza a escribir tu nota en Markdown...
           <EmptyState
             searchTerm={searchTerm}
             onClearSearch={() => setSearchTerm("")}
+            currentBook={currentBook}
+            onCreateNote={handleCreateNewNote}
           />
         ) : (
           filteredAndSortedNotes.map((note) => (

@@ -11,24 +11,22 @@ type Props = {
 export default function NotesProvider({ children }: Props) {
   const [state, dispatch] = useReducer(notesReducer, initialState);
 
-  // Cargar notas iniciales
+  // Cargar datos iniciales
   useEffect(() => {
-    const loadInitialNotes = async () => {
+    const loadInitialData = async () => {
       try {
-        const notes = await NotesService.getNotes();
-        // En lugar de añadir notas una por una, cargarlas todas de una vez
-        // para evitar renders innecesarios y posibles duplicaciones
+        const { books, notes } = await NotesService.getData();
         dispatch({
-          type: "LOAD_NOTES",
-          payload: { notes },
+          type: "LOAD_DATA",
+          payload: { books, notes },
         });
       } catch (error) {
-        console.error("Error al cargar notas iniciales:", error);
+        console.error("Error al cargar datos iniciales:", error);
       }
     };
 
-    if (state.notes.length === 0) {
-      loadInitialNotes();
+    if (state.books.length === 0 && state.notes.length === 0) {
+      loadInitialData();
     }
   }, []);
 
