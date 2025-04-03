@@ -25,7 +25,7 @@ export default function MainLayout({ children }: Props) {
   const [newBookEmoji, setNewBookEmoji] = useState("📓");
   const [editingBook, setEditingBook] = useState<string | null>(null);
   const [isCreatingBook, setIsCreatingBook] = useState(false);
-  const [isDragging, setIsDragging] = useState(false);
+  const [, setIsDragging] = useState(false);
   const [draggedNoteId, setDraggedNoteId] = useState<string | null>(null);
 
   const isNotePage = location.pathname.includes("/note/");
@@ -246,7 +246,7 @@ export default function MainLayout({ children }: Props) {
     }
   };
 
-  const handleDragEnd = (e: React.DragEvent) => {
+  const handleDragEnd = () => {
     setIsDragging(false);
     setDraggedNoteId(null);
 
