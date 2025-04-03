@@ -354,7 +354,7 @@
 
 .note-card-actions {
   display: flex;
-  padding: var(--space-sm);
+  padding: var(--space-sm) var(--space-md);
   border-top: 1px solid var(--border);
   background-color: var(--background);
   transition: all 0.3s ease;
@@ -365,6 +365,7 @@
   left: 0;
   right: 0;
   justify-content: flex-end;
+  gap: var(--space-sm);
 }
 
 .note-card:hover .note-card-actions {
@@ -377,25 +378,43 @@
 }
 
 .note-card-actions button {
-  padding: var(--space-xs) var(--space-sm);
+  padding: var(--space-xs) var(--space-md);
   font-size: 0.85rem;
-  margin-left: var(--space-sm);
   box-shadow: none;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  border-radius: var(--radius-md);
+  transition: transform 0.2s ease, box-shadow 0.2s ease,
+    background-color 0.2s ease;
 }
 
 .note-card-actions button:hover {
   transform: translateY(-1px);
   box-shadow: var(--shadow-sm);
 }
-
 .view-button {
   background-color: var(--primary-light);
   color: var(--primary);
+  border: 1px solid transparent;
 }
 
+.view-button:hover {
+  background-color: var(--primary);
+  color: white;
+}
+
+/* Botón de eliminar */
 .delete-button {
-  background-color: var(--danger-light);
-  color: var(--danger);
+  background-color: transparent;
+  color: white;
+  border: 1px solid var(--danger-light);
+}
+
+.delete-button:hover {
+  color: white;
+  border-color: var(--danger);
 }
 
 .note-create-section {
@@ -656,6 +675,16 @@
     justify-content: space-between;
   }
 
+  .notes-container.list .note-card-actions {
+    position: relative;
+    opacity: 1;
+    transform: none;
+    background: transparent;
+    border-top: none;
+    padding: 0;
+    align-self: center;
+  }
+
   .notes-container.list .note-card-inner {
     flex-direction: column;
     align-items: flex-start;
@@ -699,6 +728,14 @@
     position: relative;
     opacity: 1;
     transform: none;
+    border-top: 1px solid var(--border);
+    padding: var(--space-sm) var(--space-md);
+    margin-top: var(--space-sm);
+  }
+
+  .note-card-actions button {
+    flex: 1;
+    justify-content: center;
   }
 
   .floating-action {
@@ -711,4 +748,23 @@
     height: 48px;
     font-size: 1.5rem;
   }
+}
+
+/* Mejora para el modo oscuro */
+.dark-theme .view-button {
+  background-color: rgba(59, 130, 246, 0.15);
+}
+
+.dark-theme .delete-button {
+  border-color: rgba(239, 68, 68, 0.2);
+}
+
+/* Mejora de accesibilidad con un efecto sutil al hacer focus */
+.note-card-actions button:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--primary-light);
+}
+
+.delete-button:focus {
+  box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--danger-light) !important;
 }

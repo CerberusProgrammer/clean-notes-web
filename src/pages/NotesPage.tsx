@@ -107,18 +107,20 @@ const NoteCard = memo(
             aria-label="Editar nota"
           >
             <span className="button-icon">✎</span>
-            <span className="button-text">Editar</span>
+            <span>Editar</span>
           </button>
           <button
             onClick={(e) => {
               e.stopPropagation();
-              onDelete(note.id);
+              if (window.confirm("¿Estás seguro de eliminar esta nota?")) {
+                onDelete(note.id);
+              }
             }}
             className="delete-button"
             aria-label="Eliminar nota"
           >
             <span className="button-icon">🗑</span>
-            <span className="button-text">Eliminar</span>
+            <span>Eliminar</span>
           </button>
         </div>
       </div>
