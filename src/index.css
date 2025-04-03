@@ -1,29 +1,36 @@
-:root {
-  /* Paleta de colores */
-  --background: #f2f2f7;
-  --surface: #ffffff;
-  --primary: #007aff;
-  --primary-light: #e3f2fd;
-  --secondary: #5e5ce6;
-  --text-primary: #000000;
-  --text-secondary: #666666;
-  --text-tertiary: #aeaeb2;
-  --danger: #ff3b30;
-  --success: #34c759;
-  --border: #d1d1d6;
-  --shadow: rgba(0, 0, 0, 0.1);
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap");
 
-  /* Espaciado */
+:root {
+  /* Paleta de colores refinada */
+  --background: #f8f8fa;
+  --surface: #ffffff;
+  --primary: #0066ff;
+  --primary-light: #e1f0ff;
+  --secondary: #5856d6;
+  --text-primary: #111827;
+  --text-secondary: #4b5563;
+  --text-tertiary: #9ca3af;
+  --danger: #ff2d55;
+  --danger-light: #fff1f2;
+  --success: #34c759;
+  --border: #e5e7eb;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.03);
+  --shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.07);
+
+  /* Espaciado refinado */
   --space-xs: 4px;
   --space-sm: 8px;
   --space-md: 16px;
   --space-lg: 24px;
   --space-xl: 32px;
+  --space-2xl: 48px;
 
   /* Bordes */
   --radius-sm: 8px;
   --radius-md: 12px;
-  --radius-lg: 18px;
+  --radius-lg: 16px;
+  --radius-full: 9999px;
 }
 
 * {
@@ -34,123 +41,201 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+html {
+  font-size: 16px;
+}
+
 body {
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text",
-    "Helvetica Neue", sans-serif;
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "SF Pro Text",
+    sans-serif;
   background-color: var(--background);
   color: var(--text-primary);
   line-height: 1.5;
-  padding: var(--space-md);
-  max-width: 800px;
+  padding: var(--space-lg) var(--space-md);
+  max-width: 900px;
   margin: 0 auto;
+  letter-spacing: -0.011em;
 }
 
-/* Tipografía */
+/* Tipografía refinada */
 h1 {
-  font-size: 1.8rem;
+  font-size: 2.125rem;
   font-weight: 600;
   margin-bottom: var(--space-lg);
   color: var(--text-primary);
+  letter-spacing: -0.021em;
+  line-height: 1.2;
 }
 
 h2 {
-  font-size: 1.2rem;
-  font-weight: 500;
+  font-size: 1.25rem;
+  font-weight: 600;
   margin-bottom: var(--space-xs);
   color: var(--text-primary);
+  letter-spacing: -0.019em;
 }
 
 p {
-  font-size: 0.9rem;
+  font-size: 0.95rem;
+  font-weight: 400;
   color: var(--text-secondary);
   margin-bottom: var(--space-xs);
+  line-height: 1.5;
 }
 
 /* Layout general */
 #root {
   display: flex;
   flex-direction: column;
-  min-height: calc(100vh - 32px);
+  min-height: calc(100vh - 48px);
+  animation: fadeIn 0.6s ease;
 }
 
-/* Botones */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Botones con diseño refinado */
 button {
   background-color: var(--primary);
   color: white;
   border: none;
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-full);
   padding: var(--space-sm) var(--space-lg);
   font-size: 0.95rem;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  letter-spacing: -0.01em;
+  box-shadow: 0 1px 3px rgba(0, 102, 255, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+button::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #fff;
+  opacity: 0;
+  transition: opacity 0.3s ease;
 }
 
 button:hover {
-  opacity: 0.9;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 102, 255, 0.15);
+}
+
+button:hover::after {
+  opacity: 0.1;
+}
+
+button:active {
+  transform: translateY(1px);
+  box-shadow: 0 1px 2px rgba(0, 102, 255, 0.2);
 }
 
 button:disabled {
   background-color: var(--text-tertiary);
+  transform: none;
+  box-shadow: none;
   cursor: not-allowed;
 }
 
-button:active {
-  transform: scale(0.98);
+button:last-child {
+  margin-left: var(--space-sm);
 }
 
-/* Input y textarea */
+/* Input y textarea con diseño refinado */
 textarea {
   width: 100%;
   border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  padding: var(--space-md);
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text",
-    "Helvetica Neue", sans-serif;
+  border-radius: var(--radius-md);
+  padding: var(--space-md) var(--space-lg);
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
   font-size: 1rem;
+  font-weight: 400;
+  line-height: 1.6;
   resize: vertical;
   background-color: var(--surface);
   margin-bottom: var(--space-md);
-  transition: border-color 0.2s ease;
+  transition: all 0.25s ease;
+  color: var(--text-primary);
+  letter-spacing: -0.011em;
+}
+
+textarea::placeholder {
+  color: var(--text-tertiary);
+  opacity: 0.8;
 }
 
 textarea:focus {
   outline: none;
   border-color: var(--primary);
-  box-shadow: 0 0 0 2px var(--primary-light);
+  box-shadow: 0 0 0 3px var(--primary-light), 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 textarea:disabled {
   background-color: var(--background);
   cursor: not-allowed;
+  color: var(--text-tertiary);
 }
 
 /* Estilos de la página de notas */
 .notes-container {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: var(--space-md);
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: var(--space-lg);
   margin-top: var(--space-xl);
+  perspective: 1000px;
 }
 
 .note-card {
   background-color: var(--surface);
-  border-radius: var(--radius-md);
-  padding: var(--space-md);
-  box-shadow: 0 2px 8px var(--shadow);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
+  box-shadow: var(--shadow-sm);
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
   cursor: pointer;
   position: relative;
   overflow: hidden;
+  transform-origin: center bottom;
+  border: 1px solid rgba(235, 238, 242, 0.8);
+}
+
+.note-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--primary), var(--secondary));
+  opacity: 0;
+  transition: opacity 0.35s ease;
 }
 
 .note-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px var(--shadow);
+  transform: translateY(-4px) scale(1.01);
+  box-shadow: var(--shadow-lg);
+}
+
+.note-card:hover::before {
+  opacity: 1;
 }
 
 .note-card h2 {
-  margin-bottom: var(--space-xs);
+  margin-bottom: var(--space-sm);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -160,20 +245,45 @@ textarea:disabled {
   display: flex;
   justify-content: flex-end;
   gap: var(--space-sm);
-  margin-top: var(--space-md);
+  margin-top: var(--space-lg);
+  opacity: 0;
+  transform: translateY(8px);
+  transition: all 0.3s ease;
+}
+
+.note-card:hover .note-card-actions {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.note-card-actions button {
+  padding: var(--space-xs) var(--space-md);
+  font-size: 0.875rem;
 }
 
 .note-card-actions button:last-child {
   background-color: var(--danger);
 }
 
-/* Form para crear nuevas notas */
+.note-card-actions button:last-child:hover {
+  box-shadow: 0 4px 12px rgba(255, 45, 85, 0.15);
+}
+
+/* Form para crear nuevas notas con diseño mejorado */
 .note-form {
   background-color: var(--surface);
-  padding: var(--space-lg);
-  border-radius: var(--radius-md);
-  box-shadow: 0 2px 8px var(--shadow);
-  margin-bottom: var(--space-xl);
+  padding: var(--space-xl);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+  margin-bottom: var(--space-2xl);
+  border: 1px solid rgba(235, 238, 242, 0.8);
+  transform: translateY(0);
+  transition: transform 0.35s ease, box-shadow 0.35s ease;
+}
+
+.note-form:focus-within {
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-2px);
 }
 
 .form-actions {
@@ -181,12 +291,25 @@ textarea:disabled {
   justify-content: flex-end;
 }
 
-/* Página de nota individual */
+/* Página de nota individual con diseño refinado */
 .note-page {
   background-color: var(--surface);
-  border-radius: var(--radius-md);
-  padding: var(--space-lg);
-  box-shadow: 0 2px 8px var(--shadow);
+  border-radius: var(--radius-lg);
+  padding: var(--space-xl);
+  box-shadow: var(--shadow);
+  animation: slideUp 0.4s ease;
+  border: 1px solid rgba(235, 238, 242, 0.8);
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .note-header {
@@ -196,8 +319,20 @@ textarea:disabled {
   margin-bottom: var(--space-lg);
 }
 
+.note-header button {
+  background-color: var(--surface);
+  color: var(--primary);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  border: 1px solid var(--border);
+}
+
+.note-header button:hover {
+  background-color: var(--primary-light);
+  border-color: var(--primary-light);
+}
+
 .note-footer {
-  margin-top: var(--space-lg);
+  margin-top: var(--space-xl);
   padding-top: var(--space-md);
   border-top: 1px solid var(--border);
   display: flex;
@@ -207,29 +342,124 @@ textarea:disabled {
 }
 
 .note-editor textarea {
-  min-height: 300px;
+  min-height: 320px;
   margin-bottom: var(--space-lg);
+  line-height: 1.7;
+  font-size: 1.05rem;
+  padding: var(--space-lg);
+  border-radius: var(--radius-md);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.03);
 }
 
-/* Estado vacío y cargando */
+/* Estado vacío y cargando con animaciones */
 .empty-state,
 .loading-state {
   text-align: center;
-  padding: var(--space-xl);
+  padding: var(--space-2xl);
   color: var(--text-secondary);
+  background-color: var(--surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  margin-top: var(--space-xl);
+  border: 1px solid rgba(235, 238, 242, 0.8);
+  animation: pulse 2s infinite ease-in-out;
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.loading-state::after {
+  content: "...";
+  animation: loadingDots 1.5s infinite;
+}
+
+@keyframes loadingDots {
+  0% {
+    content: ".";
+  }
+  33% {
+    content: "..";
+  }
+  66% {
+    content: "...";
+  }
 }
 
 /* Media queries para responsividad */
-@media (max-width: 600px) {
+@media (max-width: 768px) {
   body {
-    padding: var(--space-sm);
+    padding: var(--space-md) var(--space-sm);
   }
 
+  .notes-container {
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: var(--space-md);
+  }
+
+  .note-form,
+  .note-page {
+    padding: var(--space-lg);
+  }
+
+  h1 {
+    font-size: 1.8rem;
+  }
+}
+
+@media (max-width: 480px) {
   .notes-container {
     grid-template-columns: 1fr;
   }
 
-  .note-form {
+  .note-form,
+  .note-page {
     padding: var(--space-md);
   }
+
+  h1 {
+    font-size: 1.5rem;
+  }
+
+  .note-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-md);
+  }
+
+  .note-header button {
+    width: 100%;
+  }
+
+  .note-footer {
+    flex-direction: column;
+    gap: var(--space-xs);
+  }
+}
+
+/* Efecto de tema claro en el documento */
+::selection {
+  background-color: var(--primary-light);
+  color: var(--primary);
+}
+
+/* Animación para elementos que aparecen */
+.fade-in {
+  animation: fadeIn 0.4s ease forwards;
+}
+
+/* Transiciones refinadas para todos los elementos */
+* {
+  transition-property: background-color, border-color, opacity, transform,
+    box-shadow;
+  transition-duration: 0.25s;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
 }
