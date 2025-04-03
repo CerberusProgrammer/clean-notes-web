@@ -82,7 +82,7 @@ export default function NotesPage() {
     <div>
       <h1>Notas</h1>
 
-      <div>
+      <div className="note-form">
         <textarea
           value={newNoteContent}
           onChange={(e) => setNewNoteContent(e.target.value)}
@@ -90,28 +90,48 @@ export default function NotesPage() {
           rows={3}
           disabled={isCreating}
         />
-        <button onClick={handleAddNote} disabled={isCreating}>
-          {isCreating ? "Creando..." : "Añadir Nota"}
-        </button>
+        <div className="form-actions">
+          <button onClick={handleAddNote} disabled={isCreating}>
+            {isCreating ? "Creando..." : "Añadir Nota"}
+          </button>
+        </div>
       </div>
 
-      <div>
+      <div className="notes-container">
         {isLoading ? (
-          <p>Cargando notas...</p>
+          <div className="loading-state">Cargando notas...</div>
         ) : state.notes.length === 0 ? (
-          <p>No hay notas disponibles</p>
+          <div className="empty-state">No hay notas disponibles</div>
         ) : (
           state.notes.map((note) => (
-            <div key={note.id}>
-              <h2 onClick={() => handleSelectNote(note.id)}>
+            <div
+              key={note.id}
+              className="note-card"
+              onClick={() => handleSelectNote(note.id)}
+            >
+              <h2>
                 {note.content.substring(0, 30)}
                 {note.content.length > 30 ? "..." : ""}
               </h2>
               <p>Creada: {new Date(note.createdAt).toLocaleString()}</p>
-              <button onClick={() => handleSelectNote(note.id)}>Ver</button>
-              <button onClick={() => handleDeleteNote(note.id)}>
-                Eliminar
-              </button>
+              <div className="note-card-actions">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleSelectNote(note.id);
+                  }}
+                >
+                  Ver
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDeleteNote(note.id);
+                  }}
+                >
+                  Eliminar
+                </button>
+              </div>
             </div>
           ))
         )}

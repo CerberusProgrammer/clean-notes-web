@@ -95,34 +95,38 @@ export default function NotePage() {
   };
 
   if (loading) {
-    return <div>Cargando nota...</div>;
+    return <div className="loading-state">Cargando nota...</div>;
   }
 
   if (!selectedNote) {
-    return <div>Nota no encontrada</div>;
+    return <div className="empty-state">Nota no encontrada</div>;
   }
 
   return (
-    <div>
-      <button onClick={handleBack} disabled={isSaving}>
-        Volver a las notas
-      </button>
-      <h1>Editar Nota</h1>
-
-      <textarea
-        value={content}
-        onChange={(e) => setContent(e.target.value)}
-        rows={10}
-        disabled={isSaving}
-      />
-
-      <div>
-        <button onClick={handleUpdateNote} disabled={isSaving}>
-          {isSaving ? "Guardando..." : "Guardar cambios"}
+    <div className="note-page">
+      <div className="note-header">
+        <h1>Editar Nota</h1>
+        <button onClick={handleBack} disabled={isSaving}>
+          Volver a las notas
         </button>
       </div>
 
-      <div>
+      <div className="note-editor">
+        <textarea
+          value={content}
+          onChange={(e) => setContent(e.target.value)}
+          rows={10}
+          disabled={isSaving}
+        />
+
+        <div className="form-actions">
+          <button onClick={handleUpdateNote} disabled={isSaving}>
+            {isSaving ? "Guardando..." : "Guardar cambios"}
+          </button>
+        </div>
+      </div>
+
+      <div className="note-footer">
         <p>Creada: {new Date(selectedNote.createdAt).toLocaleString()}</p>
         <p>Actualizada: {new Date(selectedNote.updatedAt).toLocaleString()}</p>
       </div>
