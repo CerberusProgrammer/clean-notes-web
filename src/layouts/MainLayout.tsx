@@ -383,7 +383,7 @@ export default function MainLayout({ children }: Props) {
                         type: "SELECT_BOOK",
                         payload: { id: book.id },
                       });
-                      navigate("/");
+                      navigate(`/book/${book.id}`);
                     }}
                     onDragOver={handleDragOver}
                     onDragLeave={handleDragLeave}
