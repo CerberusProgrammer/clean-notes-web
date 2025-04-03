@@ -59,7 +59,6 @@
   --transition-bounce: 0.5s cubic-bezier(0.18, 1.25, 0.4, 1);
 }
 
-/* Variables para el tema morado */
 .purple-theme {
   --primary: #8b5cf6;
   --primary-dark: #6d28d9;
@@ -79,13 +78,93 @@
   --focus-ring: 0 0 0 2px var(--primary-light);
 }
 
-/* El tema morado en modo oscuro puede necesitar ajustes específicos */
 .dark-theme.purple-theme {
   --primary: #a78bfa;
   --primary-dark: #8b5cf6;
   --primary-light: #4c1d95;
   --secondary: #c4b5fd;
   --sidebar-active: #4c1d95;
+}
+
+.red-theme {
+  --primary: #ef4444;
+  --primary-dark: #dc2626;
+  --primary-light: #fee2e2;
+  --secondary: #f87171;
+  --sidebar-active: #fecaca;
+  --gradient-primary: linear-gradient(
+    135deg,
+    var(--primary) 0%,
+    var(--secondary) 100%
+  );
+  --gradient-subtle: linear-gradient(
+    135deg,
+    var(--primary-light) 0%,
+    #ffd6d6 100%
+  );
+  --focus-ring: 0 0 0 2px var(--primary-light);
+}
+
+.dark-theme.red-theme {
+  --primary: #f87171;
+  --primary-dark: #ef4444;
+  --primary-light: #7f1d1d;
+  --secondary: #fca5a5;
+  --sidebar-active: #7f1d1d;
+}
+
+.green-theme {
+  --primary: #10b981;
+  --primary-dark: #059669;
+  --primary-light: #d1fae5;
+  --secondary: #34d399;
+  --sidebar-active: #a7f3d0;
+  --gradient-primary: linear-gradient(
+    135deg,
+    var(--primary) 0%,
+    var(--secondary) 100%
+  );
+  --gradient-subtle: linear-gradient(
+    135deg,
+    var(--primary-light) 0%,
+    #daffef 100%
+  );
+  --focus-ring: 0 0 0 2px var(--primary-light);
+}
+
+.dark-theme.green-theme {
+  --primary: #34d399;
+  --primary-dark: #10b981;
+  --primary-light: #064e3b;
+  --secondary: #6ee7b7;
+  --sidebar-active: #064e3b;
+}
+
+.amber-theme {
+  --primary: #f59e0b;
+  --primary-dark: #d97706;
+  --primary-light: #fef3c7;
+  --secondary: #fbbf24;
+  --sidebar-active: #fde68a;
+  --gradient-primary: linear-gradient(
+    135deg,
+    var(--primary) 0%,
+    var(--secondary) 100%
+  );
+  --gradient-subtle: linear-gradient(
+    135deg,
+    var(--primary-light) 0%,
+    #fff0c0 100%
+  );
+  --focus-ring: 0 0 0 2px var(--primary-light);
+}
+
+.dark-theme.amber-theme {
+  --primary: #fbbf24;
+  --primary-dark: #f59e0b;
+  --primary-light: #78350f;
+  --secondary: #fcd34d;
+  --sidebar-active: #78350f;
 }
 
 * {

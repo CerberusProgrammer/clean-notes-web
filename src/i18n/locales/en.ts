@@ -124,5 +124,8 @@ export default {
     colorTheme: "Color scheme",
     blueTheme: "Blue theme",
     purpleTheme: "Purple theme",
+    redTheme: "Red theme",
+    greenTheme: "Green theme",
+    amberTheme: "Amber theme",
   },
 };

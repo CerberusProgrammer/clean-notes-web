@@ -324,14 +324,19 @@ export default function SettingsPage() {
             </div>
           </div>
 
-          {/* Opción para tema de color */}
           <div className="setting-row">
             <div className="setting-label">
               <span>{t.settings.colorTheme}</span>
               <span className="setting-description">
                 {colorTheme === "blue"
                   ? t.settings.blueTheme
-                  : t.settings.purpleTheme}
+                  : colorTheme === "purple"
+                  ? t.settings.purpleTheme
+                  : colorTheme === "red"
+                  ? t.settings.redTheme
+                  : colorTheme === "green"
+                  ? t.settings.greenTheme
+                  : t.settings.amberTheme}
               </span>
             </div>
             <div className="setting-control">
@@ -349,6 +354,27 @@ export default function SettingsPage() {
                   }`}
                   onClick={() => handleColorThemeChange("purple")}
                   aria-label={t.settings.purpleTheme}
+                />
+                <button
+                  className={`color-theme-option red ${
+                    colorTheme === "red" ? "active" : ""
+                  }`}
+                  onClick={() => handleColorThemeChange("red")}
+                  aria-label={t.settings.redTheme}
+                />
+                <button
+                  className={`color-theme-option green ${
+                    colorTheme === "green" ? "active" : ""
+                  }`}
+                  onClick={() => handleColorThemeChange("green")}
+                  aria-label={t.settings.greenTheme}
+                />
+                <button
+                  className={`color-theme-option amber ${
+                    colorTheme === "amber" ? "active" : ""
+                  }`}
+                  onClick={() => handleColorThemeChange("amber")}
+                  aria-label={t.settings.amberTheme}
                 />
               </div>
             </div>

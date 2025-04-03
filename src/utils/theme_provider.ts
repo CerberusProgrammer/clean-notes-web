@@ -1,13 +1,21 @@
-export type ThemeColor = "blue" | "purple";
+export type ThemeColor = "blue" | "purple" | "red" | "green" | "amber";
 
 /**
  * Cambia el tema de color de la aplicación
  */
 export function setThemeColor(color: ThemeColor): void {
-  if (color === "purple") {
-    document.body.classList.add("purple-theme");
-  } else {
-    document.body.classList.remove("purple-theme");
+  // Eliminar todas las clases de tema existentes
+  document.body.classList.remove(
+    "blue-theme",
+    "purple-theme",
+    "red-theme",
+    "green-theme",
+    "amber-theme"
+  );
+
+  // Añadir la clase del tema seleccionado
+  if (color !== "blue") {
+    document.body.classList.add(`${color}-theme`);
   }
 
   // Guardar en localStorage
