@@ -2,12 +2,14 @@ import { useContext, useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { NotesContext } from "../provider/NotesContext";
 import { NotesService } from "../provider/NotesService";
+import { useTranslation } from "../i18n/locales/i18nHooks";
 import "./NotePage.css";
 
 export default function NotePage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { state, dispatch } = useContext(NotesContext);
+  const { t, locale } = useTranslation();
   const [content, setContent] = useState("");
   const [loading, setLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -168,16 +170,30 @@ export default function NotePage() {
     const now = new Date();
     const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
 
-    if (diffInSeconds < 60) {
-      return "ahora mismo";
-    } else if (diffInSeconds < 3600) {
-      const minutes = Math.floor(diffInSeconds / 60);
-      return `hace ${minutes} ${minutes === 1 ? "minuto" : "minutos"}`;
-    } else if (diffInSeconds < 86400) {
-      const hours = Math.floor(diffInSeconds / 3600);
-      return `hace ${hours} ${hours === 1 ? "hora" : "horas"}`;
+    if (locale === "es") {
+      if (diffInSeconds < 60) {
+        return "ahora mismo";
+      } else if (diffInSeconds < 3600) {
+        const minutes = Math.floor(diffInSeconds / 60);
+        return `hace ${minutes} ${minutes === 1 ? "minuto" : "minutos"}`;
+      } else if (diffInSeconds < 86400) {
+        const hours = Math.floor(diffInSeconds / 3600);
+        return `hace ${hours} ${hours === 1 ? "hora" : "horas"}`;
+      } else {
+        return date.toLocaleString("es-ES");
+      }
     } else {
-      return date.toLocaleString();
+      if (diffInSeconds < 60) {
+        return "just now";
+      } else if (diffInSeconds < 3600) {
+        const minutes = Math.floor(diffInSeconds / 60);
+        return `${minutes} ${minutes === 1 ? "minute" : "minutes"} ago`;
+      } else if (diffInSeconds < 86400) {
+        const hours = Math.floor(diffInSeconds / 3600);
+        return `${hours} ${hours === 1 ? "hour" : "hours"} ago`;
+      } else {
+        return date.toLocaleString("en-US");
+      }
     }
   };
 
@@ -266,7 +282,13 @@ export default function NotePage() {
         newCursorPos = start + 5;
         break;
       case "table":
-        formattedText = `| Columna 1 | Columna 2 | Columna 3 |\n| --- | --- | --- |\n| Celda 1 | Celda 2 | Celda 3 |`;
+        formattedText = `| ${t.editor.headings} 1 | ${t.editor.headings} 2 | ${
+          t.editor.headings
+        } 3 |\n| --- | --- | --- |\n| ${
+          locale === "es" ? "Celda" : "Cell"
+        } 1 | ${locale === "es" ? "Celda" : "Cell"} 2 | ${
+          locale === "es" ? "Celda" : "Cell"
+        } 3 |`;
         newCursorPos = start + formattedText.length;
         break;
       default:
@@ -462,7 +484,7 @@ export default function NotePage() {
   if (loading) {
     return (
       <div className="loading-state">
-        <p>Cargando nota...</p>
+        <p>{t.notes.loadingNote}</p>
       </div>
     );
   }
@@ -470,10 +492,10 @@ export default function NotePage() {
   if (!selectedNote) {
     return (
       <div className="empty-state">
-        <h3>Nota no encontrada</h3>
-        <p>La nota que buscas no existe o ha sido eliminada</p>
+        <h3>{t.notes.noteNotFound}</h3>
+        <p>{t.notes.noteNotFoundDesc}</p>
         <button onClick={() => navigate("/")} className="primary-button">
-          Volver a mis notas
+          {t.notes.backToNotes}
         </button>
       </div>
     );
@@ -487,7 +509,7 @@ export default function NotePage() {
             <div className="toolbar-left">
               <button onClick={handleBack} className="back-button">
                 <span className="button-icon">←</span>
-                <span className="button-text">Volver</span>
+                <span className="button-text">{t.notes.backToNotes}</span>
               </button>
 
               {selectedNote && (
@@ -496,7 +518,8 @@ export default function NotePage() {
                     {getCurrentBook(selectedNote.bookId)?.emoji || "📓"}
                   </span>
                   <span className="book-name">
-                    {getCurrentBook(selectedNote.bookId)?.name || "Sin libro"}
+                    {getCurrentBook(selectedNote.bookId)?.name ||
+                      (locale === "es" ? "Sin libro" : "No book")}
                   </span>
                 </div>
               )}
@@ -505,14 +528,14 @@ export default function NotePage() {
                 <span className={`status-indicator ${saveStatus}`}></span>
                 {saveStatus === "saved" && (
                   <span className="status-text">
-                    Guardado {getTimeAgo(lastSaved)}
+                    {t.common.saved} {getTimeAgo(lastSaved)}
                   </span>
                 )}
                 {saveStatus === "saving" && (
-                  <span className="status-text">Guardando...</span>
+                  <span className="status-text">{t.common.saving}</span>
                 )}
                 {saveStatus === "unsaved" && (
-                  <span className="status-text">Sin guardar</span>
+                  <span className="status-text">{t.common.unsaved}</span>
                 )}
               </div>
 
@@ -521,13 +544,13 @@ export default function NotePage() {
                   className={viewMode === "edit" ? "active" : ""}
                   onClick={() => setViewMode("edit")}
                 >
-                  Editar
+                  {t.editor.edit}
                 </button>
                 <button
                   className={viewMode === "preview" ? "active" : ""}
                   onClick={() => setViewMode("preview")}
                 >
-                  Vista previa
+                  {t.editor.preview}
                 </button>
               </div>
             </div>
@@ -537,14 +560,14 @@ export default function NotePage() {
                 onClick={() => setShowMarkdownHelp(true)}
               >
                 <span className="button-icon">?</span>
-                <span className="button-text">Markdown</span>
+                <span className="button-text">{t.editor.markdownGuide}</span>
               </button>
               <button
                 onClick={handleUpdateNote}
                 disabled={isSaving || !hasChanges}
                 className="primary-button save-button"
               >
-                {isSaving ? "Guardando..." : "Guardar"}
+                {isSaving ? t.common.saving : t.common.save}
               </button>
             </div>
           </div>
@@ -555,21 +578,21 @@ export default function NotePage() {
                 <button
                   className="format-button"
                   onClick={() => applyFormat("h1")}
-                  title="Encabezado 1"
+                  title="H1"
                 >
                   <span className="format-button-text">H1</span>
                 </button>
                 <button
                   className="format-button"
                   onClick={() => applyFormat("h2")}
-                  title="Encabezado 2"
+                  title="H2"
                 >
                   <span className="format-button-text">H2</span>
                 </button>
                 <button
                   className="format-button"
                   onClick={() => applyFormat("h3")}
-                  title="Encabezado 3"
+                  title="H3"
                 >
                   <span className="format-button-text">H3</span>
                 </button>
@@ -578,14 +601,14 @@ export default function NotePage() {
                 <button
                   className="format-button"
                   onClick={() => applyFormat("bold")}
-                  title="Negrita (Ctrl+B)"
+                  title={`${t.editor.textFormatting} (Ctrl+B)`}
                 >
                   <span className="format-button-text">B</span>
                 </button>
                 <button
                   className="format-button"
                   onClick={() => applyFormat("italic")}
-                  title="Cursiva (Ctrl+I)"
+                  title={`${locale === "es" ? "Cursiva" : "Italic"} (Ctrl+I)`}
                 >
                   <span className="format-button-text">I</span>
                 </button>
@@ -594,21 +617,21 @@ export default function NotePage() {
                 <button
                   className="format-button"
                   onClick={() => applyFormat("quote")}
-                  title="Cita"
+                  title={t.editor.quotes}
                 >
                   <span className="format-button-text">❞</span>
                 </button>
                 <button
                   className="format-button"
                   onClick={() => applyFormat("code")}
-                  title="Código inline"
+                  title={locale === "es" ? "Código inline" : "Inline code"}
                 >
                   <span className="format-button-text">`</span>
                 </button>
                 <button
                   className="format-button"
                   onClick={() => applyFormat("codeblock")}
-                  title="Bloque de código"
+                  title={t.editor.codeBlocks}
                 >
                   <span className="format-button-text">```</span>
                 </button>
@@ -617,14 +640,14 @@ export default function NotePage() {
                 <button
                   className="format-button"
                   onClick={() => applyFormat("link")}
-                  title="Enlace"
+                  title={locale === "es" ? "Enlace" : "Link"}
                 >
                   <span className="format-button-text">🔗</span>
                 </button>
                 <button
                   className="format-button"
                   onClick={() => applyFormat("image")}
-                  title="Imagen"
+                  title={locale === "es" ? "Imagen" : "Image"}
                 >
                   <span className="format-button-text">🖼️</span>
                 </button>
@@ -633,14 +656,14 @@ export default function NotePage() {
                 <button
                   className="format-button"
                   onClick={() => applyFormat("ul")}
-                  title="Lista con viñetas"
+                  title={locale === "es" ? "Lista con viñetas" : "Bullet list"}
                 >
                   <span className="format-button-text">•</span>
                 </button>
                 <button
                   className="format-button"
                   onClick={() => applyFormat("ol")}
-                  title="Lista numerada"
+                  title={locale === "es" ? "Lista numerada" : "Numbered list"}
                 >
                   <span className="format-button-text">1.</span>
                 </button>
@@ -649,14 +672,16 @@ export default function NotePage() {
                 <button
                   className="format-button"
                   onClick={() => applyFormat("hr")}
-                  title="Línea horizontal"
+                  title={
+                    locale === "es" ? "Línea horizontal" : "Horizontal line"
+                  }
                 >
                   <span className="format-button-text">—</span>
                 </button>
                 <button
                   className="format-button"
                   onClick={() => applyFormat("table")}
-                  title="Tabla"
+                  title={t.editor.tables}
                 >
                   <span className="format-button-text">⊞</span>
                 </button>
@@ -675,7 +700,7 @@ export default function NotePage() {
                     onChange={handleContentChange}
                     onKeyDown={handleKeyDown}
                     disabled={isSaving}
-                    placeholder="Comienza a escribir tu nota en Markdown..."
+                    placeholder={t.notes.startWriting}
                     className="note-textarea"
                     spellCheck={false}
                   />
@@ -694,14 +719,20 @@ export default function NotePage() {
           <div className="note-footer">
             <div className="note-meta">
               <p>
-                Actualización:{" "}
-                {new Date(selectedNote.updatedAt).toLocaleString()}
+                {locale === "es" ? "Actualización: " : "Updated: "}
+                {new Date(selectedNote.updatedAt).toLocaleString(
+                  locale === "es" ? "es-ES" : "en-US"
+                )}
               </p>
             </div>
             <div className="note-stats">
-              <span className="stats-item">{charCount} caracteres</span>
+              <span className="stats-item">
+                {charCount} {t.notes.characters}
+              </span>
               <span className="stats-divider">•</span>
-              <span className="stats-item">{wordCount} palabras</span>
+              <span className="stats-item">
+                {wordCount} {t.notes.words}
+              </span>
             </div>
           </div>
         </div>
@@ -710,17 +741,17 @@ export default function NotePage() {
       {showConfirmExit && (
         <div className="modal-overlay">
           <div className="modal-content">
-            <h3>¿Abandonar cambios?</h3>
-            <p>Tienes cambios sin guardar. ¿Qué quieres hacer?</p>
+            <h3>{t.editor.abandonChanges}</h3>
+            <p>{t.editor.unsavedChanges}</p>
             <div className="modal-actions">
               <button
                 onClick={() => setShowConfirmExit(false)}
                 className="secondary-button"
               >
-                Seguir editando
+                {t.editor.continueEditing}
               </button>
               <button onClick={() => navigate("/")} className="danger-button">
-                Salir sin guardar
+                {t.editor.exitWithoutSaving}
               </button>
               <button
                 onClick={async () => {
@@ -729,7 +760,7 @@ export default function NotePage() {
                 }}
                 className="primary-button"
               >
-                Guardar y salir
+                {t.editor.saveAndExit}
               </button>
             </div>
           </div>
@@ -739,66 +770,78 @@ export default function NotePage() {
       {showMarkdownHelp && (
         <div className="modal-overlay">
           <div className="modal-content markdown-help">
-            <h3>Guía de Markdown</h3>
+            <h3>{t.editor.markdownGuide}</h3>
 
             <div className="markdown-help-grid">
               <div className="markdown-help-section">
-                <h4>Encabezados</h4>
+                <h4>{t.editor.headings}</h4>
                 <div className="markdown-examples">
-                  # Encabezado 1<br />
-                  ## Encabezado 2<br />
-                  ### Encabezado 3
+                  # {locale === "es" ? "Encabezado" : "Heading"} 1<br />
+                  ## {locale === "es" ? "Encabezado" : "Heading"} 2<br />
+                  ### {locale === "es" ? "Encabezado" : "Heading"} 3
                 </div>
               </div>
 
               <div className="markdown-help-section">
-                <h4>Formato de texto</h4>
+                <h4>{t.editor.textFormatting}</h4>
                 <div className="markdown-examples">
-                  **Negrita** o __Negrita__
-                  <br />
-                  *Cursiva* o _Cursiva_
-                  <br />
-                  `Código inline`
+                  **{locale === "es" ? "Negrita" : "Bold"}**{" "}
+                  {locale === "es" ? "o" : "or"} __
+                  {locale === "es" ? "Negrita" : "Bold"}__
+                  <br />*{locale === "es" ? "Cursiva" : "Italic"}*{" "}
+                  {locale === "es" ? "o" : "or"} _
+                  {locale === "es" ? "Cursiva" : "Italic"}_
+                  <br />`{locale === "es" ? "Código inline" : "Inline code"}`
                 </div>
               </div>
 
               <div className="markdown-help-section">
-                <h4>Listas</h4>
+                <h4>{t.editor.lists}</h4>
                 <div className="markdown-examples">
-                  - Elemento 1<br />
-                  - Elemento 2<br />
+                  - {locale === "es" ? "Elemento" : "Item"} 1<br />-{" "}
+                  {locale === "es" ? "Elemento" : "Item"} 2<br />
                   <br />
-                  1. Elemento numerado 1<br />
-                  2. Elemento numerado 2
+                  1. {locale === "es" ? "Elemento numerado" : "Numbered item"} 1
+                  <br />
+                  2. {locale === "es" ? "Elemento numerado" : "Numbered item"} 2
                 </div>
               </div>
 
               <div className="markdown-help-section">
-                <h4>Enlaces e imágenes</h4>
+                <h4>{t.editor.linksAndImages}</h4>
                 <div className="markdown-examples">
-                  [Texto del enlace](https://ejemplo.com)
+                  [{locale === "es" ? "Texto del enlace" : "Link text"}
+                  ](https://ejemplo.com)
                   <br />
-                  ![Texto alternativo](https://url-de-la-imagen.jpg)
+                  ![{locale === "es" ? "Texto alternativo" : "Alt text"}
+                  ](https://url-de-la-imagen.jpg)
                 </div>
               </div>
 
               <div className="markdown-help-section">
-                <h4>Citas</h4>
+                <h4>{t.editor.quotes}</h4>
                 <div className="markdown-examples">
-                  &gt; Esto es una cita
+                  &gt;{" "}
+                  {locale === "es" ? "Esto es una cita" : "This is a quote"}
                   <br />
-                  &gt; Puede abarcar múltiples líneas
+                  &gt;{" "}
+                  {locale === "es"
+                    ? "Puede abarcar múltiples líneas"
+                    : "Can span multiple lines"}
                 </div>
               </div>
 
               <div className="markdown-help-section">
-                <h4>Bloques de código</h4>
+                <h4>{t.editor.codeBlocks}</h4>
                 <div className="markdown-examples">
                   ```
                   <br />
-                  function ejemplo() {`{`}
+                  function {locale === "es" ? "ejemplo" : "example"}() {`{`}
                   <br />
-                  &nbsp;&nbsp;return "Hola mundo";
+                  &nbsp;&nbsp;
+                  {locale === "es"
+                    ? 'return "Hola mundo";'
+                    : 'return "Hello world";'}
                   <br />
                   {`}`}
                   <br />
@@ -807,22 +850,25 @@ export default function NotePage() {
               </div>
 
               <div className="markdown-help-section">
-                <h4>Tablas</h4>
+                <h4>{t.editor.tables}</h4>
                 <div className="markdown-examples">
-                  | Columna 1 | Columna 2 |<br />
-                  | --- | --- |<br />
-                  | Celda 1 | Celda 2 |<br />| Celda 3 | Celda 4 |
+                  | {locale === "es" ? "Columna" : "Column"} 1 |{" "}
+                  {locale === "es" ? "Columna" : "Column"} 2 |<br />
+                  | --- | --- |<br />| {locale === "es" ? "Celda" : "Cell"} 1 |{" "}
+                  {locale === "es" ? "Celda" : "Cell"} 2 |<br />|{" "}
+                  {locale === "es" ? "Celda" : "Cell"} 3 |{" "}
+                  {locale === "es" ? "Celda" : "Cell"} 4 |
                 </div>
               </div>
 
               <div className="markdown-help-section">
-                <h4>Atajos de teclado</h4>
+                <h4>{t.editor.keyboardShortcuts}</h4>
                 <div className="markdown-examples">
-                  Ctrl+B: Negrita
+                  Ctrl+B: {locale === "es" ? "Negrita" : "Bold"}
                   <br />
-                  Ctrl+I: Cursiva
+                  Ctrl+I: {locale === "es" ? "Cursiva" : "Italic"}
                   <br />
-                  Ctrl+S: Guardar nota
+                  Ctrl+S: {locale === "es" ? "Guardar nota" : "Save note"}
                 </div>
               </div>
             </div>
@@ -832,7 +878,7 @@ export default function NotePage() {
                 onClick={() => setShowMarkdownHelp(false)}
                 className="primary-button"
               >
-                Cerrar
+                {t.common.cancel}
               </button>
             </div>
           </div>
