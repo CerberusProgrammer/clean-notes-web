@@ -2,6 +2,7 @@ import { useContext, useEffect, useState, useRef, memo, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { NotesContext } from "../provider/NotesContext";
 import { NotesService } from "../provider/NotesService";
+import { useTranslation } from "../i18n/locales/i18nHooks";
 import "./NotesPage.css";
 import { NoteCard } from "../components/NoteCard";
 
@@ -17,14 +18,18 @@ const EmptyState = memo(
     currentBook: any | null;
     onCreateNote: () => void;
   }) => {
+    const { t } = useTranslation();
+
     if (searchTerm) {
       return (
         <div className="empty-state">
           <div className="empty-state-icon">🔍</div>
-          <h3>No hay resultados</h3>
-          <p>No hay notas que coincidan con "{searchTerm}"</p>
+          <h3>{t.notes.noResults}</h3>
+          <p>
+            {t.notes.noMatchingNotes} "{searchTerm}"
+          </p>
           <button onClick={onClearSearch} className="secondary-button">
-            Limpiar búsqueda
+            {t.notes.clearSearch}
           </button>
         </div>
       );
@@ -36,19 +41,17 @@ const EmptyState = memo(
           {currentBook ? currentBook.emoji : "📝"}
         </div>
         <h3>
-          {currentBook ? `No hay notas en ${currentBook.name}` : "No hay notas"}
-        </h3>
-        <p>
           {currentBook
-            ? "Comienza creando tu primera nota en este libro"
-            : "Comienza creando tu primera nota"}
-        </p>
+            ? `${t.notes.noNotesInBook} ${currentBook.name}`
+            : t.notes.noNotes}
+        </h3>
+        <p>{currentBook ? t.notes.noNotesInBookDesc : t.notes.noNotesDesc}</p>
         <button
           onClick={onCreateNote}
           className="primary-button create-first-note-btn"
         >
           <span className="button-icon">+</span>
-          Crear primera nota
+          {t.notes.createFirstNote}
         </button>
       </div>
     );
@@ -58,6 +61,7 @@ const EmptyState = memo(
 export default function NotesPage() {
   const { state, dispatch } = useContext(NotesContext);
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [newNoteContent, setNewNoteContent] = useState("");
   const [isLoading, setIsLoading] = useState(state.notes.length === 0);
   const [isCreating, setIsCreating] = useState(false);
@@ -144,7 +148,6 @@ export default function NotesPage() {
     if (newNoteContent.trim() && !isCreating) {
       setIsCreating(true);
       try {
-        // Ensure bookId is always a string by providing a default value
         const bookId =
           state.selectedBookId ||
           (state.books.length > 0 ? state.books[0].id : "default");
@@ -213,8 +216,6 @@ export default function NotesPage() {
 
   const currentBook = getCurrentBook();
 
-  // En el componente NotesPage, actualiza la sección de renderizado de la siguiente manera:
-
   return (
     <div className="notes-page">
       <div className="page-header">
@@ -225,14 +226,16 @@ export default function NotesPage() {
               {currentBook.name}
             </h1>
           ) : (
-            <h1>Todas mis notas</h1>
+            <h1>{t.app.allNotes}</h1>
           )}
           <p className="subtitle">
             {currentBook
               ? `${filteredAndSortedNotes.length} ${
-                  filteredAndSortedNotes.length === 1 ? "nota" : "notas"
-                } en este libro`
-              : "Organiza y accede a todas tus ideas en un solo lugar"}
+                  filteredAndSortedNotes.length === 1
+                    ? t.books.notesInBook.slice(0, -1)
+                    : t.books.notesInBook
+                } ${t.notes.noNotesInBook.toLowerCase().split(" ").pop()}`
+              : t.app.organize}
           </p>
         </div>
 
@@ -240,10 +243,10 @@ export default function NotesPage() {
           <button
             onClick={handleCreateNewNote}
             className="create-note-button"
-            aria-label="Crear nueva nota"
+            aria-label={t.notes.createNote}
           >
             <span className="button-icon">+</span>
-            <span className="button-text">Nueva nota</span>
+            <span className="button-text">{t.notes.newNote}</span>
           </button>
         </div>
       </div>
@@ -256,13 +259,13 @@ export default function NotesPage() {
             <div className="form-header">
               <h2>
                 {currentBook
-                  ? `Crear nueva nota en ${currentBook.emoji} ${currentBook.name}`
-                  : "Crear nueva nota"}
+                  ? `${t.notes.createNote} ${currentBook.emoji} ${currentBook.name}`
+                  : t.notes.createNote}
               </h2>
               <button
                 className="close-form-button"
                 onClick={handleCancelCreate}
-                aria-label="Cancelar creación"
+                aria-label={t.common.cancel}
               >
                 ✕
               </button>
@@ -273,14 +276,14 @@ export default function NotesPage() {
               value={newNoteContent}
               onChange={(e) => setNewNoteContent(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="# Título de tu nota
+              placeholder={`# ${t.notes.noteTitle}
               
-Comienza a escribir tu nota en Markdown...
-- Utiliza **negrita** para destacar
-- Organiza con _cursiva_
-- Crea listas como esta
+${t.notes.startWriting}
+- ${t.editor.textFormatting} **${t.common.edit}**
+- ${t.editor.lists}
+- ${t.editor.quotes}
 
-> Añade citas para resaltar ideas importantes"
+> ${t.editor.quotes}`}
               rows={8}
               disabled={isCreating}
               className="new-note-textarea"
@@ -290,10 +293,10 @@ Comienza a escribir tu nota en Markdown...
               <div className="note-form-meta">
                 {newNoteContent.length > 0 && (
                   <span className="char-count">
-                    {newNoteContent.length} caracteres
+                    {newNoteContent.length} {t.notes.characters}
                   </span>
                 )}
-                <span className="keyboard-hint">Ctrl+Enter para crear</span>
+                <span className="keyboard-hint">{t.notes.ctrlEnterCreate}</span>
               </div>
               <div className="form-buttons">
                 <button
@@ -301,7 +304,7 @@ Comienza a escribir tu nota en Markdown...
                   className="secondary-button"
                   disabled={isCreating}
                 >
-                  Cancelar
+                  {t.common.cancel}
                 </button>
                 <button
                   onClick={handleAddNote}
@@ -311,12 +314,12 @@ Comienza a escribir tu nota en Markdown...
                   {isCreating ? (
                     <>
                       <span className="button-icon loading"></span>
-                      Creando...
+                      {t.common.saving}
                     </>
                   ) : (
                     <>
                       <span className="button-icon">✓</span>
-                      Crear nota
+                      {t.notes.createNote}
                     </>
                   )}
                 </button>
@@ -333,8 +336,8 @@ Comienza a escribir tu nota en Markdown...
             type="text"
             placeholder={
               currentBook
-                ? `Buscar en ${currentBook.name}...`
-                : "Buscar notas..."
+                ? `${t.common.search} ${currentBook.name}...`
+                : `${t.common.search} ${t.notes.newNote.toLowerCase()}...`
             }
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -371,9 +374,9 @@ Comienza a escribir tu nota en Markdown...
             onChange={(e) => setSortBy(e.target.value as any)}
             aria-label="Ordenar por"
           >
-            <option value="newest">Más recientes</option>
-            <option value="oldest">Más antiguas</option>
-            <option value="updated">Última actualización</option>
+            <option value="newest">{t.notes.sortNewest}</option>
+            <option value="oldest">{t.notes.sortOldest}</option>
+            <option value="updated">{t.notes.sortUpdated}</option>
           </select>
         </div>
       </div>
@@ -382,7 +385,7 @@ Comienza a escribir tu nota en Markdown...
         {isLoading ? (
           <div className="loading-state">
             <div className="loading-spinner"></div>
-            <p>Cargando tus notas...</p>
+            <p>{t.notes.loading}</p>
           </div>
         ) : filteredAndSortedNotes.length === 0 ? (
           <EmptyState
@@ -408,7 +411,7 @@ Comienza a escribir tu nota en Markdown...
           <button
             onClick={handleCreateNewNote}
             className="floating-create-button"
-            aria-label="Crear nueva nota"
+            aria-label={t.notes.createNote}
           >
             +
           </button>
