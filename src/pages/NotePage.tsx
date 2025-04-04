@@ -1,8 +1,10 @@
-import { useContext, useEffect, useState, useRef } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useEffect, useRef, useState, useContext } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { NotesContext } from "../provider/NotesContext";
 import { NotesService } from "../provider/NotesService";
 import { useTranslation } from "../i18n/locales/i18nHooks";
+import { ShortcutsHelp } from "./shortcuts_help";
+import { useKeyboardShortcuts } from "../provider/keyshortcuts_hooks";
 import "./NotePage.css";
 
 export default function NotePage() {
@@ -24,6 +26,191 @@ export default function NotePage() {
   const [hasChanges, setHasChanges] = useState(false);
   const [viewMode, setViewMode] = useState<"edit" | "preview">("edit");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const { helpVisible, setHelpVisible, shortcuts } = useKeyboardShortcuts([
+    {
+      combination: {
+        key: "s",
+        ctrlKey: true,
+        description: t.shortcuts.saveNote,
+      },
+      action: handleUpdateNote,
+      allowInInput: true,
+    },
+    {
+      combination: {
+        key: "b",
+        ctrlKey: true,
+        description: t.shortcuts.boldText,
+      },
+      action: () => applyFormat("bold"),
+      allowInInput: true,
+    },
+    {
+      combination: {
+        key: "i",
+        ctrlKey: true,
+        description: t.shortcuts.italicText,
+      },
+      action: () => applyFormat("italic"),
+      allowInInput: true,
+    },
+    {
+      combination: {
+        key: "1",
+        ctrlKey: true,
+        shiftKey: true,
+        description: t.shortcuts.heading1,
+      },
+      action: () => applyFormat("h1"),
+      allowInInput: true,
+    },
+    {
+      combination: {
+        key: "2",
+        ctrlKey: true,
+        shiftKey: true,
+        description: t.shortcuts.heading2,
+      },
+      action: () => applyFormat("h2"),
+      allowInInput: true,
+    },
+    {
+      combination: {
+        key: "3",
+        ctrlKey: true,
+        shiftKey: true,
+        description: t.shortcuts.heading3,
+      },
+      action: () => applyFormat("h3"),
+      allowInInput: true,
+    },
+    {
+      combination: {
+        key: "k",
+        ctrlKey: true,
+        description: t.shortcuts.insertLink,
+      },
+      action: () => applyFormat("link"),
+      allowInInput: true,
+    },
+    {
+      combination: {
+        key: "k",
+        ctrlKey: true,
+        shiftKey: true,
+        description: t.shortcuts.insertImage,
+      },
+      action: () => applyFormat("image"),
+      allowInInput: true,
+    },
+    {
+      combination: {
+        key: "`",
+        ctrlKey: true,
+        description: t.shortcuts.insertCode,
+      },
+      action: () => applyFormat("code"),
+      allowInInput: true,
+    },
+    {
+      combination: {
+        key: "`",
+        ctrlKey: true,
+        shiftKey: true,
+        description: t.shortcuts.insertCodeBlock,
+      },
+      action: () => applyFormat("codeblock"),
+      allowInInput: true,
+    },
+    {
+      combination: {
+        key: "q",
+        ctrlKey: true,
+        description: t.shortcuts.insertQuote,
+      },
+      action: () => applyFormat("quote"),
+      allowInInput: true,
+    },
+    {
+      combination: {
+        key: "u",
+        ctrlKey: true,
+        description: t.shortcuts.insertUnorderedList,
+      },
+      action: () => applyFormat("ul"),
+      allowInInput: true,
+    },
+    {
+      combination: {
+        key: "o",
+        ctrlKey: true,
+        description: t.shortcuts.insertOrderedList,
+      },
+      action: () => applyFormat("ol"),
+      allowInInput: true,
+    },
+    {
+      combination: {
+        key: "l",
+        ctrlKey: true,
+        description: t.shortcuts.insertHorizontalRule,
+      },
+      action: () => applyFormat("hr"),
+      allowInInput: true,
+    },
+    {
+      combination: {
+        key: "t",
+        ctrlKey: true,
+        description: t.shortcuts.insertTable,
+      },
+      action: () => applyFormat("table"),
+      allowInInput: true,
+    },
+    {
+      combination: {
+        key: "p",
+        ctrlKey: true,
+        description: t.shortcuts.togglePreview,
+      },
+      action: () => setViewMode(viewMode === "edit" ? "preview" : "edit"),
+      allowInInput: true,
+    },
+    {
+      combination: { key: "Escape", description: t.shortcuts.closeWindow },
+      action: handleEscape,
+      allowInInput: true,
+    },
+    {
+      combination: {
+        key: "h",
+        ctrlKey: true,
+        description: t.shortcuts.toggleHelp,
+      },
+      action: () => {}, // Manejado por el hook
+      allowInInput: true,
+    },
+    {
+      combination: {
+        key: "ArrowLeft",
+        altKey: true,
+        description: t.shortcuts.goBack,
+      },
+      action: handleBack,
+      allowInInput: true,
+    },
+  ]);
+
+  function handleEscape() {
+    if (showMarkdownHelp) {
+      setShowMarkdownHelp(false);
+    } else if (showConfirmExit) {
+      setShowConfirmExit(false);
+    } else if (helpVisible) {
+      setHelpVisible(false);
+    }
+  }
 
   useEffect(() => {
     if (!loading && textareaRef.current && viewMode === "edit") {
@@ -74,8 +261,8 @@ export default function NotePage() {
               setContent(fetchedNote.content);
               setLastSaved(new Date(fetchedNote.updatedAt));
               dispatch({
-                type: "LOAD_NOTES",
-                payload: { notes: [fetchedNote] },
+                type: "ADD_NOTE",
+                payload: { note: fetchedNote },
               });
               dispatch({ type: "SELECT_NOTE", payload: { id } });
             } else {
@@ -129,7 +316,7 @@ export default function NotePage() {
     }
   };
 
-  const handleUpdateNote = async () => {
+  async function handleUpdateNote() {
     if (selectedNote && content.trim() && !isSaving) {
       setIsSaving(true);
       setSaveStatus("saving");
@@ -154,17 +341,17 @@ export default function NotePage() {
         setIsSaving(false);
       }
     }
-  };
+  }
 
-  const handleBack = () => {
+  function handleBack() {
     if (hasChanges) {
       setShowConfirmExit(true);
     } else {
       navigate("/");
     }
-  };
+  }
 
-  const getTimeAgo = (date: Date | null) => {
+  function getTimeAgo(date: Date | null) {
     if (!date) return "";
 
     const now = new Date();
@@ -195,29 +382,25 @@ export default function NotePage() {
         return date.toLocaleString("en-US");
       }
     }
-  };
+  }
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") {
+    if (e.key === "Tab") {
       e.preventDefault();
-      handleUpdateNote();
-      return;
-    }
+      const start = textareaRef.current!.selectionStart;
+      const end = textareaRef.current!.selectionEnd;
+      setContent(content.substring(0, start) + "  " + content.substring(end));
 
-    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "b") {
-      e.preventDefault();
-      applyFormat("bold");
-      return;
-    }
-
-    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "i") {
-      e.preventDefault();
-      applyFormat("italic");
-      return;
+      setTimeout(() => {
+        if (textareaRef.current) {
+          textareaRef.current.selectionStart = start + 2;
+          textareaRef.current.selectionEnd = start + 2;
+        }
+      }, 0);
     }
   };
 
-  const applyFormat = (formatType: string) => {
+  function applyFormat(formatType: string) {
     if (!textareaRef.current) return;
 
     const textarea = textareaRef.current;
@@ -250,7 +433,7 @@ export default function NotePage() {
         newCursorPos = selectedText ? end + 2 : start + 1;
         break;
       case "code":
-        formattedText = "`" + selectedText + "`";
+        formattedText = `\`${selectedText}\``;
         newCursorPos = selectedText ? end + 2 : start + 1;
         break;
       case "codeblock":
@@ -282,13 +465,11 @@ export default function NotePage() {
         newCursorPos = start + 5;
         break;
       case "table":
-        formattedText = `| ${t.editor.headings} 1 | ${t.editor.headings} 2 | ${
-          t.editor.headings
-        } 3 |\n| --- | --- | --- |\n| ${
-          locale === "es" ? "Celda" : "Cell"
-        } 1 | ${locale === "es" ? "Celda" : "Cell"} 2 | ${
-          locale === "es" ? "Celda" : "Cell"
-        } 3 |`;
+        formattedText = `| ${t.editor.headings || "Encabezado"} 1 | ${
+          t.editor.headings || "Encabezado"
+        } 2 | ${
+          t.editor.headings || "Encabezado"
+        } 3 |\n| --- | --- | --- |\n| Celda 1 | Celda 2 | Celda 3 |`;
         newCursorPos = start + formattedText.length;
         break;
       default:
@@ -312,9 +493,9 @@ export default function NotePage() {
         textarea.selectionEnd = newCursorPos;
       }
     }, 0);
-  };
+  }
 
-  const renderMarkdown = (text: string): string => {
+  function renderMarkdown(text: string): string {
     if (!text) return "";
 
     const escapeHtml = (text: string) => {
@@ -474,263 +655,246 @@ export default function NotePage() {
     });
 
     return html;
-  };
-
-  const getCurrentBook = (bookId: string | undefined) => {
-    if (!bookId) return null;
-    return state.books.find((b) => b.id === bookId);
-  };
-
-  if (loading) {
-    return <></>;
   }
 
-  if (!selectedNote) {
+  if (loading) {
     return (
-      <div className="empty-state">
-        <h3>{t.notes.noteNotFound}</h3>
-        <p>{t.notes.noteNotFoundDesc}</p>
-        <button onClick={() => navigate("/")} className="primary-button">
-          {t.notes.backToNotes}
-        </button>
+      <div className="note-page-container">
+        <div className="loading-state">
+          <div className="loading-spinner"></div>
+          <p>{t.notes.loadingNote}</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <>
-      <div className="note-page-container">
-        <div className="note-paper">
-          <div className="note-toolbar">
-            <div className="toolbar-left">
-              <button onClick={handleBack} className="back-button">
-                <span className="button-icon">←</span>
-                <span className="button-text">{t.notes.backToNotes}</span>
-              </button>
-
-              {selectedNote && (
-                <div className="note-book-indicator">
-                  <span className="book-icon">
-                    {getCurrentBook(selectedNote.bookId)?.emoji || "📓"}
-                  </span>
-                  <span className="book-name">
-                    {getCurrentBook(selectedNote.bookId)?.name ||
-                      (locale === "es" ? "Sin libro" : "No book")}
-                  </span>
-                </div>
-              )}
-
-              <div className="note-status">
-                <span className={`status-indicator ${saveStatus}`}></span>
-                {saveStatus === "saved" && (
-                  <span className="status-text">
-                    {t.common.saved} {getTimeAgo(lastSaved)}
-                  </span>
-                )}
-                {saveStatus === "saving" && (
-                  <span className="status-text">{t.common.saving}</span>
-                )}
-                {saveStatus === "unsaved" && (
-                  <span className="status-text">{t.common.unsaved}</span>
-                )}
-              </div>
-
-              <div className="view-switcher">
-                <button
-                  className={viewMode === "edit" ? "active" : ""}
-                  onClick={() => setViewMode("edit")}
-                >
-                  {t.editor.edit}
-                </button>
-                <button
-                  className={viewMode === "preview" ? "active" : ""}
-                  onClick={() => setViewMode("preview")}
-                >
-                  {t.editor.preview}
-                </button>
-              </div>
-            </div>
-            <div className="toolbar-right">
+    <div className="note-page-container">
+      <div className="note-paper">
+        <div className="note-toolbar">
+          <div className="toolbar-left">
+            <button
+              className="back-button"
+              onClick={handleBack}
+              title={`${t.shortcuts.goBack} (Alt+←)`}
+            >
+              ← {t.notes.backToNotes}
+            </button>
+            <div className="view-switcher">
               <button
-                className="markdown-help-button"
-                onClick={() => setShowMarkdownHelp(true)}
+                className={viewMode === "edit" ? "active" : ""}
+                onClick={() => setViewMode("edit")}
+                title={`${t.editor.edit} (Ctrl+P)`}
               >
-                <span className="button-icon">?</span>
-                <span className="button-text">{t.editor.markdownGuide}</span>
+                {t.editor.edit}
               </button>
               <button
-                onClick={handleUpdateNote}
-                disabled={isSaving || !hasChanges}
-                className="primary-button save-button"
+                className={viewMode === "preview" ? "active" : ""}
+                onClick={() => setViewMode("preview")}
+                title={`${t.editor.preview} (Ctrl+P)`}
               >
-                {isSaving ? t.common.saving : t.common.save}
+                {t.editor.preview}
               </button>
             </div>
           </div>
+          <div className="toolbar-right">
+            <button
+              className="markdown-help-button"
+              onClick={() => setShowMarkdownHelp(true)}
+              title={t.editor.markdownGuide}
+            >
+              ? {t.editor.markdownGuide}
+            </button>
+            <button
+              className="help-button"
+              onClick={() => setHelpVisible(true)}
+              title={`${t.shortcuts.keyboardShortcuts} (Ctrl+H)`}
+            >
+              ⌨️
+            </button>
+          </div>
+        </div>
 
-          {viewMode === "edit" && (
-            <div className="markdown-toolbar">
-              <div className="format-group">
-                <button
-                  className="format-button"
-                  onClick={() => applyFormat("h1")}
-                  title="H1"
-                >
-                  <span className="format-button-text">H1</span>
-                </button>
-                <button
-                  className="format-button"
-                  onClick={() => applyFormat("h2")}
-                  title="H2"
-                >
-                  <span className="format-button-text">H2</span>
-                </button>
-                <button
-                  className="format-button"
-                  onClick={() => applyFormat("h3")}
-                  title="H3"
-                >
-                  <span className="format-button-text">H3</span>
-                </button>
-              </div>
-              <div className="format-group">
-                <button
-                  className="format-button"
-                  onClick={() => applyFormat("bold")}
-                  title={`${t.editor.textFormatting} (Ctrl+B)`}
-                >
-                  <span className="format-button-text">B</span>
-                </button>
-                <button
-                  className="format-button"
-                  onClick={() => applyFormat("italic")}
-                  title={`${locale === "es" ? "Cursiva" : "Italic"} (Ctrl+I)`}
-                >
-                  <span className="format-button-text">I</span>
-                </button>
-              </div>
-              <div className="format-group">
-                <button
-                  className="format-button"
-                  onClick={() => applyFormat("quote")}
-                  title={t.editor.quotes}
-                >
-                  <span className="format-button-text">❞</span>
-                </button>
-                <button
-                  className="format-button"
-                  onClick={() => applyFormat("code")}
-                  title={locale === "es" ? "Código inline" : "Inline code"}
-                >
-                  <span className="format-button-text">`</span>
-                </button>
-                <button
-                  className="format-button"
-                  onClick={() => applyFormat("codeblock")}
-                  title={t.editor.codeBlocks}
-                >
-                  <span className="format-button-text">```</span>
-                </button>
-              </div>
-              <div className="format-group">
-                <button
-                  className="format-button"
-                  onClick={() => applyFormat("link")}
-                  title={locale === "es" ? "Enlace" : "Link"}
-                >
-                  <span className="format-button-text">🔗</span>
-                </button>
-                <button
-                  className="format-button"
-                  onClick={() => applyFormat("image")}
-                  title={locale === "es" ? "Imagen" : "Image"}
-                >
-                  <span className="format-button-text">🖼️</span>
-                </button>
-              </div>
-              <div className="format-group">
-                <button
-                  className="format-button"
-                  onClick={() => applyFormat("ul")}
-                  title={locale === "es" ? "Lista con viñetas" : "Bullet list"}
-                >
-                  <span className="format-button-text">•</span>
-                </button>
-                <button
-                  className="format-button"
-                  onClick={() => applyFormat("ol")}
-                  title={locale === "es" ? "Lista numerada" : "Numbered list"}
-                >
-                  <span className="format-button-text">1.</span>
-                </button>
-              </div>
-              <div className="format-group">
-                <button
-                  className="format-button"
-                  onClick={() => applyFormat("hr")}
-                  title={
-                    locale === "es" ? "Línea horizontal" : "Horizontal line"
-                  }
-                >
-                  <span className="format-button-text">—</span>
-                </button>
-                <button
-                  className="format-button"
-                  onClick={() => applyFormat("table")}
-                  title={t.editor.tables}
-                >
-                  <span className="format-button-text">⊞</span>
-                </button>
-              </div>
+        {viewMode === "edit" && (
+          <div className="markdown-toolbar">
+            <div className="format-group">
+              <button
+                className="format-button"
+                onClick={() => applyFormat("h1")}
+                title={`${t.editor.headings} 1 (Ctrl+Shift+1)`}
+              >
+                <span className="format-button-text">H1</span>
+              </button>
+              <button
+                className="format-button"
+                onClick={() => applyFormat("h2")}
+                title={`${t.editor.headings} 2 (Ctrl+Shift+2)`}
+              >
+                <span className="format-button-text">H2</span>
+              </button>
+              <button
+                className="format-button"
+                onClick={() => applyFormat("h3")}
+                title={`${t.editor.headings} 3 (Ctrl+Shift+3)`}
+              >
+                <span className="format-button-text">H3</span>
+              </button>
             </div>
-          )}
+            <div className="format-group">
+              <button
+                className="format-button"
+                onClick={() => applyFormat("bold")}
+                title={`${t.shortcuts.boldText} (Ctrl+B)`}
+              >
+                <span className="format-button-text">B</span>
+              </button>
+              <button
+                className="format-button"
+                onClick={() => applyFormat("italic")}
+                title={`${t.shortcuts.italicText} (Ctrl+I)`}
+              >
+                <span className="format-button-text">I</span>
+              </button>
+              <button
+                className="format-button"
+                onClick={() => applyFormat("code")}
+                title={`${t.shortcuts.insertCode} (Ctrl+\`)`}
+              >
+                <span className="format-button-text">{`<>`}</span>
+              </button>
+            </div>
+            <div className="format-group">
+              <button
+                className="format-button"
+                onClick={() => applyFormat("link")}
+                title={`${t.shortcuts.insertLink} (Ctrl+K)`}
+              >
+                <span className="format-button-text">🔗</span>
+              </button>
+              <button
+                className="format-button"
+                onClick={() => applyFormat("image")}
+                title={`${t.shortcuts.insertImage} (Ctrl+Shift+K)`}
+              >
+                <span className="format-button-text">🖼️</span>
+              </button>
+            </div>
+            <div className="format-group">
+              <button
+                className="format-button"
+                onClick={() => applyFormat("quote")}
+                title={`${t.shortcuts.insertQuote} (Ctrl+Q)`}
+              >
+                <span className="format-button-text">❝</span>
+              </button>
+              <button
+                className="format-button"
+                onClick={() => applyFormat("ul")}
+                title={`${t.shortcuts.insertUnorderedList} (Ctrl+U)`}
+              >
+                <span className="format-button-text">•</span>
+              </button>
+              <button
+                className="format-button"
+                onClick={() => applyFormat("ol")}
+                title={`${t.shortcuts.insertOrderedList} (Ctrl+O)`}
+              >
+                <span className="format-button-text">1.</span>
+              </button>
+            </div>
+            <div className="format-group">
+              <button
+                className="format-button"
+                onClick={() => applyFormat("table")}
+                title={`${t.shortcuts.insertTable} (Ctrl+T)`}
+              >
+                <span className="format-button-text">⊞</span>
+              </button>
+              <button
+                className="format-button"
+                onClick={() => applyFormat("hr")}
+                title={`${t.shortcuts.insertHorizontalRule} (Ctrl+L)`}
+              >
+                <span className="format-button-text">―</span>
+              </button>
+              <button
+                className="format-button"
+                onClick={() => applyFormat("codeblock")}
+                title={`${t.shortcuts.insertCodeBlock} (Ctrl+Shift+\`)`}
+              >
+                <span className="format-button-text">{`{}`}</span>
+              </button>
+            </div>
+          </div>
+        )}
 
-          <div className="note-editor">
+        <div className="note-editor">
+          {viewMode === "edit" ? (
             <div className="textarea-container">
-              {viewMode === "edit" && (
+              <div className="textarea-backdrop"></div>
+              <textarea
+                ref={textareaRef}
+                value={content}
+                onChange={handleContentChange}
+                onKeyDown={handleKeyDown}
+                className="note-textarea"
+                placeholder={t.notes.startWriting}
+              ></textarea>
+            </div>
+          ) : (
+            <div
+              className="markdown-preview"
+              dangerouslySetInnerHTML={{ __html: renderMarkdown(content) }}
+            ></div>
+          )}
+        </div>
+
+        <div className="note-footer">
+          <div className="note-meta">
+            <div className="note-stats">
+              <div className="stats-item">
+                <span
+                  className={`status-indicator ${saveStatus}`}
+                  title={
+                    saveStatus === "saved"
+                      ? t.common.saved
+                      : saveStatus === "saving"
+                      ? t.common.saving
+                      : t.common.unsaved
+                  }
+                ></span>
+                <span className="status-text">
+                  {saveStatus === "saved"
+                    ? t.common.saved
+                    : saveStatus === "saving"
+                    ? t.common.saving
+                    : t.common.unsaved}
+                </span>
+              </div>
+              <span className="stats-divider">•</span>
+              <div>
+                {charCount} {t.notes.characters}
+              </div>
+              <span className="stats-divider">•</span>
+              <div>
+                {wordCount} {t.notes.words}
+              </div>
+              {lastSaved && (
                 <>
-                  <div className="textarea-backdrop"></div>
-                  <textarea
-                    ref={textareaRef}
-                    value={content}
-                    onChange={handleContentChange}
-                    onKeyDown={handleKeyDown}
-                    disabled={isSaving}
-                    placeholder={t.notes.startWriting}
-                    className="note-textarea"
-                    spellCheck={false}
-                  />
+                  <span className="stats-divider">•</span>
+                  <div>{getTimeAgo(lastSaved)}</div>
                 </>
               )}
-
-              {viewMode === "preview" && (
-                <div
-                  className="markdown-preview"
-                  dangerouslySetInnerHTML={{ __html: renderMarkdown(content) }}
-                />
-              )}
             </div>
           </div>
-
-          <div className="note-footer">
-            <div className="note-meta">
-              <p>
-                {locale === "es" ? "Actualización: " : "Updated: "}
-                {new Date(selectedNote.updatedAt).toLocaleString(
-                  locale === "es" ? "es-ES" : "en-US"
-                )}
-              </p>
-            </div>
-            <div className="note-stats">
-              <span className="stats-item">
-                {charCount} {t.notes.characters}
-              </span>
-              <span className="stats-divider">•</span>
-              <span className="stats-item">
-                {wordCount} {t.notes.words}
-              </span>
-            </div>
-          </div>
+          <button
+            className="primary-button save-button"
+            onClick={handleUpdateNote}
+            disabled={!hasChanges || isSaving}
+            title={`${t.common.save} (Ctrl+S)`}
+          >
+            {isSaving ? t.common.saving : t.common.save}
+          </button>
         </div>
       </div>
 
@@ -741,20 +905,20 @@ export default function NotePage() {
             <p>{t.editor.unsavedChanges}</p>
             <div className="modal-actions">
               <button
-                onClick={() => setShowConfirmExit(false)}
                 className="secondary-button"
+                onClick={() => setShowConfirmExit(false)}
               >
                 {t.editor.continueEditing}
               </button>
-              <button onClick={() => navigate("/")} className="danger-button">
+              <button className="danger-button" onClick={() => navigate("/")}>
                 {t.editor.exitWithoutSaving}
               </button>
               <button
+                className="primary-button"
                 onClick={async () => {
                   await handleUpdateNote();
                   navigate("/");
                 }}
-                className="primary-button"
               >
                 {t.editor.saveAndExit}
               </button>
@@ -767,79 +931,58 @@ export default function NotePage() {
         <div className="modal-overlay">
           <div className="modal-content markdown-help">
             <h3>{t.editor.markdownGuide}</h3>
-
             <div className="markdown-help-grid">
               <div className="markdown-help-section">
                 <h4>{t.editor.headings}</h4>
                 <div className="markdown-examples">
-                  # {locale === "es" ? "Encabezado" : "Heading"} 1<br />
-                  ## {locale === "es" ? "Encabezado" : "Heading"} 2<br />
-                  ### {locale === "es" ? "Encabezado" : "Heading"} 3
+                  # {t.editor.headings} 1<br />
+                  ## {t.editor.headings} 2<br />
+                  ### {t.editor.headings} 3
                 </div>
               </div>
 
               <div className="markdown-help-section">
                 <h4>{t.editor.textFormatting}</h4>
                 <div className="markdown-examples">
-                  **{locale === "es" ? "Negrita" : "Bold"}**{" "}
-                  {locale === "es" ? "o" : "or"} __
-                  {locale === "es" ? "Negrita" : "Bold"}__
-                  <br />*{locale === "es" ? "Cursiva" : "Italic"}*{" "}
-                  {locale === "es" ? "o" : "or"} _
-                  {locale === "es" ? "Cursiva" : "Italic"}_
-                  <br />`{locale === "es" ? "Código inline" : "Inline code"}`
+                  **{t.editor.textFormatting}**
+                  <br />*{t.editor.textFormatting}*
                 </div>
               </div>
 
               <div className="markdown-help-section">
                 <h4>{t.editor.lists}</h4>
                 <div className="markdown-examples">
-                  - {locale === "es" ? "Elemento" : "Item"} 1<br />-{" "}
-                  {locale === "es" ? "Elemento" : "Item"} 2<br />
+                  - {t.editor.lists}
+                  <br />- {t.editor.lists}
                   <br />
-                  1. {locale === "es" ? "Elemento numerado" : "Numbered item"} 1
                   <br />
-                  2. {locale === "es" ? "Elemento numerado" : "Numbered item"} 2
+                  1. {t.editor.lists}
+                  <br />
+                  2. {t.editor.lists}
                 </div>
               </div>
 
               <div className="markdown-help-section">
                 <h4>{t.editor.linksAndImages}</h4>
                 <div className="markdown-examples">
-                  [{locale === "es" ? "Texto del enlace" : "Link text"}
-                  ](https://ejemplo.com)
+                  [{t.editor.linksAndImages}](url)
                   <br />
-                  ![{locale === "es" ? "Texto alternativo" : "Alt text"}
-                  ](https://url-de-la-imagen.jpg)
+                  ![{t.editor.linksAndImages}](url)
                 </div>
               </div>
 
               <div className="markdown-help-section">
                 <h4>{t.editor.quotes}</h4>
-                <div className="markdown-examples">
-                  &gt;{" "}
-                  {locale === "es" ? "Esto es una cita" : "This is a quote"}
-                  <br />
-                  &gt;{" "}
-                  {locale === "es"
-                    ? "Puede abarcar múltiples líneas"
-                    : "Can span multiple lines"}
-                </div>
+                <div className="markdown-examples">&gt; {t.editor.quotes}</div>
               </div>
 
               <div className="markdown-help-section">
                 <h4>{t.editor.codeBlocks}</h4>
                 <div className="markdown-examples">
+                  `{t.editor.codeBlocks}`<br />
                   ```
                   <br />
-                  function {locale === "es" ? "ejemplo" : "example"}() {`{`}
-                  <br />
-                  &nbsp;&nbsp;
-                  {locale === "es"
-                    ? 'return "Hola mundo";'
-                    : 'return "Hello world";'}
-                  <br />
-                  {`}`}
+                  {t.editor.codeBlocks}
                   <br />
                   ```
                 </div>
@@ -848,31 +991,21 @@ export default function NotePage() {
               <div className="markdown-help-section">
                 <h4>{t.editor.tables}</h4>
                 <div className="markdown-examples">
-                  | {locale === "es" ? "Columna" : "Column"} 1 |{" "}
-                  {locale === "es" ? "Columna" : "Column"} 2 |<br />
-                  | --- | --- |<br />| {locale === "es" ? "Celda" : "Cell"} 1 |{" "}
-                  {locale === "es" ? "Celda" : "Cell"} 2 |<br />|{" "}
-                  {locale === "es" ? "Celda" : "Cell"} 3 |{" "}
-                  {locale === "es" ? "Celda" : "Cell"} 4 |
+                  | {t.editor.headings} 1 | {t.editor.headings} 2 |<br />
+                  | --- | --- |<br />| Celda 1 | Celda 2 |
                 </div>
               </div>
 
               <div className="markdown-help-section">
-                <h4>{t.editor.keyboardShortcuts}</h4>
-                <div className="markdown-examples">
-                  Ctrl+B: {locale === "es" ? "Negrita" : "Bold"}
-                  <br />
-                  Ctrl+I: {locale === "es" ? "Cursiva" : "Italic"}
-                  <br />
-                  Ctrl+S: {locale === "es" ? "Guardar nota" : "Save note"}
-                </div>
+                <h4>{t.shortcuts.horizontalRule}</h4>
+                <div className="markdown-examples">---</div>
               </div>
             </div>
 
             <div className="modal-actions">
               <button
-                onClick={() => setShowMarkdownHelp(false)}
                 className="primary-button"
+                onClick={() => setShowMarkdownHelp(false)}
               >
                 {t.common.cancel}
               </button>
@@ -880,6 +1013,13 @@ export default function NotePage() {
           </div>
         </div>
       )}
-    </>
+
+      {helpVisible && (
+        <ShortcutsHelp
+          shortcuts={shortcuts}
+          onClose={() => setHelpVisible(false)}
+        />
+      )}
+    </div>
   );
 }
