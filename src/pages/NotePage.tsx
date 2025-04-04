@@ -62,7 +62,10 @@ export default function NotePage() {
         shiftKey: true,
         description: t.shortcuts.heading1,
       },
-      action: () => applyFormat("h1"),
+      action: () => {
+        console.log("Atajo h1 activado");
+        applyFormat("h1");
+      },
       allowInInput: true,
     },
     {
@@ -72,7 +75,10 @@ export default function NotePage() {
         shiftKey: true,
         description: t.shortcuts.heading2,
       },
-      action: () => applyFormat("h2"),
+      action: () => {
+        console.log("Atajo h2 activado");
+        applyFormat("h2");
+      },
       allowInInput: true,
     },
     {
@@ -82,7 +88,10 @@ export default function NotePage() {
         shiftKey: true,
         description: t.shortcuts.heading3,
       },
-      action: () => applyFormat("h3"),
+      action: () => {
+        console.log("Atajo h3 activado");
+        applyFormat("h3");
+      },
       allowInInput: true,
     },
     {
@@ -403,26 +412,42 @@ export default function NotePage() {
   function applyFormat(formatType: string) {
     if (!textareaRef.current) return;
 
+    console.log(`Aplicando formato: ${formatType}`);
+
     const textarea = textareaRef.current;
     const start = textarea.selectionStart;
     const end = textarea.selectionEnd;
     const selectedText = content.substring(start, end);
 
+    // Verificar si estamos al inicio de una línea
+    const isStartOfLine = start === 0 || content.charAt(start - 1) === "\n";
     let formattedText = "";
     let newCursorPos = 0;
 
     switch (formatType) {
       case "h1":
-        formattedText = `# ${selectedText}`;
-        newCursorPos = start + 2;
+        if (isStartOfLine) {
+          formattedText = `# ${selectedText}`;
+        } else {
+          formattedText = `\n# ${selectedText}`;
+        }
+        newCursorPos = formattedText.length - selectedText.length;
         break;
       case "h2":
-        formattedText = `## ${selectedText}`;
-        newCursorPos = start + 3;
+        if (isStartOfLine) {
+          formattedText = `## ${selectedText}`;
+        } else {
+          formattedText = `\n## ${selectedText}`;
+        }
+        newCursorPos = formattedText.length - selectedText.length;
         break;
       case "h3":
-        formattedText = `### ${selectedText}`;
-        newCursorPos = start + 4;
+        if (isStartOfLine) {
+          formattedText = `### ${selectedText}`;
+        } else {
+          formattedText = `\n### ${selectedText}`;
+        }
+        newCursorPos = formattedText.length - selectedText.length;
         break;
       case "bold":
         formattedText = `**${selectedText}**`;
@@ -449,16 +474,28 @@ export default function NotePage() {
         newCursorPos = selectedText ? end + 7 : start + 2;
         break;
       case "quote":
-        formattedText = `> ${selectedText}`;
-        newCursorPos = start + 2;
+        if (isStartOfLine) {
+          formattedText = `> ${selectedText}`;
+        } else {
+          formattedText = `\n> ${selectedText}`;
+        }
+        newCursorPos = formattedText.length - selectedText.length;
         break;
       case "ul":
-        formattedText = `- ${selectedText}`;
-        newCursorPos = start + 2;
+        if (isStartOfLine) {
+          formattedText = `- ${selectedText}`;
+        } else {
+          formattedText = `\n- ${selectedText}`;
+        }
+        newCursorPos = formattedText.length - selectedText.length;
         break;
       case "ol":
-        formattedText = `1. ${selectedText}`;
-        newCursorPos = start + 3;
+        if (isStartOfLine) {
+          formattedText = `1. ${selectedText}`;
+        } else {
+          formattedText = `\n1. ${selectedText}`;
+        }
+        newCursorPos = formattedText.length - selectedText.length;
         break;
       case "hr":
         formattedText = `\n---\n${selectedText}`;
@@ -486,11 +523,13 @@ export default function NotePage() {
     setTimeout(() => {
       textarea.focus();
       if (selectedText) {
-        textarea.selectionStart = start + formattedText.length;
-        textarea.selectionEnd = start + formattedText.length;
+        const cursorPos = start + formattedText.length - selectedText.length;
+        textarea.selectionStart = cursorPos;
+        textarea.selectionEnd = cursorPos + selectedText.length;
       } else {
-        textarea.selectionStart = newCursorPos;
-        textarea.selectionEnd = newCursorPos;
+        const cursorPos = start + newCursorPos;
+        textarea.selectionStart = cursorPos;
+        textarea.selectionEnd = cursorPos;
       }
     }, 0);
   }
@@ -655,6 +694,11 @@ export default function NotePage() {
     });
 
     return html;
+  }
+
+  function getCurrentBook(bookId: string | undefined) {
+    if (!bookId) return null;
+    return state.books.find((b) => b.id === bookId);
   }
 
   if (loading) {
