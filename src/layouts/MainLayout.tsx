@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useContext } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import DropdownMenu from "../components/DropdownMenu";
+import "./MainLayout.css";
+import { useTranslation } from "../i18n/locales/i18nHooks";
 import { NotesContext } from "../provider/NotesContext";
 import { NotesService } from "../provider/NotesService";
-import DropdownMenu from "../components/DropdownMenu";
-import { useTranslation } from "../i18n/locales/i18nHooks";
-import "./MainLayout.css";
 import { ThemeColor } from "../utils/theme_provider";
 
 type Props = {
@@ -20,7 +20,6 @@ export default function MainLayout({ children }: Props) {
   const [mounted, setMounted] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [darkMode, setDarkMode] = useState(false);
-  // Añadimos estado para el tema de color
   const [, setColorTheme] = useState<ThemeColor>("blue");
   const [expandedBooks, setExpandedBooks] = useState<Record<string, boolean>>(
     {}
@@ -32,10 +31,25 @@ export default function MainLayout({ children }: Props) {
   const [isCreatingBook, setIsCreatingBook] = useState(false);
   const [, setIsDragging] = useState(false);
   const [draggedNoteId, setDraggedNoteId] = useState<string | null>(null);
+  const [isMobile, setIsMobile] = useState(false);
+  const [showMobileOverlay, setShowMobileOverlay] = useState(false);
 
   const isNotePage = location.pathname.includes("/note/");
   const isSettingsPage = location.pathname.includes("/settings");
   const currentNoteId = isNotePage ? location.pathname.split("/").pop() : null;
+
+  useEffect(() => {
+    const checkMobileView = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    checkMobileView();
+    window.addEventListener("resize", checkMobileView);
+
+    return () => {
+      window.removeEventListener("resize", checkMobileView);
+    };
+  }, []);
 
   useEffect(() => {
     setMounted(true);
@@ -44,17 +58,14 @@ export default function MainLayout({ children }: Props) {
       setCurrentTime(new Date());
     }, 60000);
 
-    // Cargar tema claro/oscuro
     const savedTheme = localStorage.getItem("cleanNotes-theme");
     if (savedTheme === "dark") {
       setDarkMode(true);
       document.body.classList.add("dark-theme");
     }
 
-    // Cargar tema de color (ya se inicializa en main.tsx, pero mantenemos la sincronización del estado)
     const savedColorTheme = localStorage.getItem("cleanNotes-colorTheme");
     if (savedColorTheme === "purple") {
-      // Solo establecer el estado local, el color ya se carga globalmente
       setColorTheme("purple");
     }
 
@@ -87,12 +98,20 @@ export default function MainLayout({ children }: Props) {
       setExpandedBooks(defaultExpanded);
     }
 
-    if (isNotePage && window.innerWidth < 768) {
-      setSidebarOpen(false);
-    } else {
-      const savedSidebarState = localStorage.getItem("cleanNotes-sidebar");
-      setSidebarOpen(savedSidebarState !== "closed");
-    }
+    const checkSidebarState = () => {
+      const isSmallScreen = window.innerWidth < 768;
+
+      if (isSmallScreen) {
+        setSidebarOpen(false);
+        setShowMobileOverlay(false);
+      } else {
+        const savedSidebarState = localStorage.getItem("cleanNotes-sidebar");
+        setSidebarOpen(savedSidebarState !== "closed");
+      }
+    };
+
+    checkSidebarState();
+    window.addEventListener("resize", checkSidebarState);
 
     return () => {
       clearInterval(interval);
@@ -104,13 +123,24 @@ export default function MainLayout({ children }: Props) {
         "colorthemechange",
         handleColorThemeChange as EventListener
       );
+      window.removeEventListener("resize", checkSidebarState);
     };
-  }, [isNotePage, state.books]);
+  }, [state.books]);
 
   const toggleSidebar = () => {
-    const newState = !sidebarOpen;
-    setSidebarOpen(newState);
-    localStorage.setItem("cleanNotes-sidebar", newState ? "open" : "closed");
+    const newSidebarState = !sidebarOpen;
+    setSidebarOpen(newSidebarState);
+
+    if (!isMobile) {
+      localStorage.setItem(
+        "cleanNotes-sidebar",
+        newSidebarState ? "open" : "closed"
+      );
+    }
+
+    if (isMobile) {
+      setShowMobileOverlay(newSidebarState);
+    }
   };
 
   const toggleTheme = () => {
@@ -227,6 +257,11 @@ export default function MainLayout({ children }: Props) {
       });
 
       navigate(`/note/${newNote.id}`);
+
+      if (isMobile) {
+        setSidebarOpen(false);
+        setShowMobileOverlay(false);
+      }
     } catch (error) {
       console.error("Error al crear nota:", error);
     }
@@ -312,9 +347,20 @@ export default function MainLayout({ children }: Props) {
     return firstLine.substring(0, 30) + "...";
   };
 
-  if (isNotePage && window.innerWidth < 768) {
-    return <div className="mobile-note-page">{children}</div>;
-  }
+  const handleOverlayClick = () => {
+    if (isMobile) {
+      setSidebarOpen(false);
+      setShowMobileOverlay(false);
+    }
+  };
+
+  const handleNoteItemClick = (noteId: string) => {
+    navigate(`/note/${noteId}`);
+    if (isMobile) {
+      setSidebarOpen(false);
+      setShowMobileOverlay(false);
+    }
+  };
 
   return (
     <div className={`app-container ${darkMode ? "dark-theme" : ""}`}>
@@ -342,9 +388,13 @@ export default function MainLayout({ children }: Props) {
                   ? "active"
                   : ""
               }`}
-              onClick={() =>
-                dispatch({ type: "SELECT_BOOK", payload: { id: "" } })
-              }
+              onClick={() => {
+                dispatch({ type: "SELECT_BOOK", payload: { id: "" } });
+                if (isMobile) {
+                  setSidebarOpen(false);
+                  setShowMobileOverlay(false);
+                }
+              }}
             >
               <span className="nav-icon">🏠</span>
               {sidebarOpen && (
@@ -355,6 +405,12 @@ export default function MainLayout({ children }: Props) {
             <Link
               to="/settings"
               className={`nav-item ${isSettingsPage ? "active" : ""}`}
+              onClick={() => {
+                if (isMobile) {
+                  setSidebarOpen(false);
+                  setShowMobileOverlay(false);
+                }
+              }}
             >
               <span className="nav-icon">⚙️</span>
               {sidebarOpen && (
@@ -397,6 +453,10 @@ export default function MainLayout({ children }: Props) {
                         payload: { id: book.id },
                       });
                       navigate(`/book/${book.id}`);
+                      if (isMobile) {
+                        setSidebarOpen(false);
+                        setShowMobileOverlay(false);
+                      }
                     }}
                     onDragOver={handleDragOver}
                     onDragLeave={handleDragLeave}
@@ -470,7 +530,7 @@ export default function MainLayout({ children }: Props) {
                               className={`note-item ${
                                 currentNoteId === note.id ? "active" : ""
                               }`}
-                              onClick={() => navigate(`/note/${note.id}`)}
+                              onClick={() => handleNoteItemClick(note.id)}
                               draggable
                               onDragStart={(e) => handleDragStart(note.id, e)}
                               onDragEnd={handleDragEnd}
@@ -547,6 +607,10 @@ export default function MainLayout({ children }: Props) {
         )}
       </div>
 
+      {showMobileOverlay && (
+        <div className="sidebar-overlay" onClick={handleOverlayClick}></div>
+      )}
+
       <main
         className={`main-content ${mounted ? "mounted" : ""} ${
           sidebarOpen ? "with-sidebar" : "full-width"
@@ -554,6 +618,17 @@ export default function MainLayout({ children }: Props) {
       >
         {children}
       </main>
+
+      {/* Botón flotante para abrir sidebar en móvil - ahora siempre visible al hacer scroll */}
+      {isMobile && !sidebarOpen && (
+        <button
+          className="mobile-sidebar-toggle"
+          onClick={toggleSidebar}
+          aria-label="Open sidebar"
+        >
+          ≡
+        </button>
+      )}
 
       {(newBookModalOpen || editingBook !== null) && (
         <div
