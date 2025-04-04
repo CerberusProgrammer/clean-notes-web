@@ -1,5 +1,5 @@
 import { useState, useContext, useEffect } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { UserContext } from "../../auth/UserContext";
 import { UserServices } from "../../auth/UserServices";
 import { useTranslation } from "../../i18n/locales/i18nHooks";
@@ -13,7 +13,6 @@ export default function LoginPage() {
   const [emailFocused, setEmailFocused] = useState(false);
   const [passwordFocused, setPasswordFocused] = useState(false);
   const { dispatch } = useContext(UserContext);
-  const navigate = useNavigate();
   const { t, locale, changeLocale } = useTranslation();
 
   useEffect(() => {
