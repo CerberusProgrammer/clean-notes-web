@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 
-// Definición de tipos para los shortcuts
 type KeyCombination = {
   key: string;
   ctrlKey?: boolean;
@@ -12,33 +11,35 @@ type KeyCombination = {
 type KeyboardShortcut = {
   combination: KeyCombination;
   action: () => void;
+  allowInInput?: boolean; // Nueva propiedad para permitir el atajo en inputs
 };
 
 export function useKeyboardShortcuts(shortcuts: KeyboardShortcut[]) {
   const [helpVisible, setHelpVisible] = useState(false);
 
-  // Manejador de eventos de teclado
   const handleKeyDown = (event: KeyboardEvent) => {
-    // No capturar eventos si el foco está en un campo de texto o área de texto
-    if (
+    const isInputActive =
       event.target instanceof HTMLInputElement ||
-      event.target instanceof HTMLTextAreaElement
-    ) {
-      // Excepción: si es Ctrl+H para ayuda, permitirlo siempre
-      if (!(event.ctrlKey && event.key.toLowerCase() === "h")) {
-        return;
-      }
-    }
+      event.target instanceof HTMLTextAreaElement;
 
     // Comprobar si algún atajo coincide con la combinación de teclas
     for (const shortcut of shortcuts) {
-      const { combination, action } = shortcut;
+      const { combination, action, allowInInput = false } = shortcut;
       const {
         key,
         ctrlKey = false,
         altKey = false,
         shiftKey = false,
       } = combination;
+
+      // Si estamos en un input y no es un atajo permitido en inputs, saltamos
+      if (
+        isInputActive &&
+        !allowInInput &&
+        !(ctrlKey && key.toLowerCase() === "h")
+      ) {
+        continue;
+      }
 
       const keyMatches = event.key.toLowerCase() === key.toLowerCase();
       const modifiersMatch =
@@ -47,6 +48,7 @@ export function useKeyboardShortcuts(shortcuts: KeyboardShortcut[]) {
         shiftKey === event.shiftKey;
 
       if (keyMatches && modifiersMatch) {
+        // Evitar que se produzcan acciones estándar del navegador
         event.preventDefault();
 
         // Si es Ctrl+H, manejarlo especialmente para mostrar/ocultar la ayuda
@@ -67,7 +69,7 @@ export function useKeyboardShortcuts(shortcuts: KeyboardShortcut[]) {
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [shortcuts, helpVisible]); // Incluir dependencias actualizadas
+  }, [shortcuts, helpVisible]);
 
   return {
     helpVisible,
