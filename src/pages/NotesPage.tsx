@@ -4,151 +4,9 @@ import { NotesContext } from "../provider/NotesContext";
 import { NotesService } from "../provider/NotesService";
 import { useTranslation } from "../i18n/locales/i18nHooks";
 import "./NotesPage.css";
-
-type EmptyStateProps = {
-  searchTerm: string;
-  onClearSearch: () => void;
-  currentBook: { id: string; name: string; emoji?: string } | null;
-  onCreateNote: () => void;
-};
-
-function EmptyState({
-  searchTerm,
-  onClearSearch,
-  currentBook,
-  onCreateNote,
-}: EmptyStateProps) {
-  const { t } = useTranslation();
-
-  if (searchTerm) {
-    return (
-      <div className="empty-state">
-        <div className="empty-state-icon">🔍</div>
-        <h3>{t.notes.noSearchResults}</h3>
-        <p>
-          {t.notes.noSearchResultsFor} <strong>"{searchTerm}"</strong>
-        </p>
-        <button onClick={onClearSearch} className="primary-button">
-          {t.notes.clearSearch}
-        </button>
-      </div>
-    );
-  }
-
-  return (
-    <div className="empty-state">
-      <div className="empty-state-icon">{currentBook?.emoji || "📝"}</div>
-      <h3>
-        {currentBook
-          ? `${t.notes.noNotesInBook} ${currentBook.name}`
-          : t.notes.noNotes}
-      </h3>
-      <p>{t.notes.startByCreating}</p>
-      <button
-        onClick={onCreateNote}
-        className="primary-button create-first-note-btn"
-      >
-        <span className="button-icon">+</span>
-        <span>{t.notes.createFirstNote}</span>
-      </button>
-    </div>
-  );
-}
-
-type NoteCardProps = {
-  note: {
-    id: string;
-    content: string;
-    createdAt: number;
-    updatedAt: number;
-  };
-  onDelete: (id: string) => void;
-  onView: (id: string) => void;
-};
-
-function NoteCard({ note, onDelete, onView }: NoteCardProps) {
-  const { t } = useTranslation();
-
-  const getNoteTitle = (content: string): string => {
-    const headerMatch = content.match(/^#+ (.+)$/m);
-    if (headerMatch) return headerMatch[1];
-
-    const firstLine = content.split("\n")[0];
-    if (firstLine.length < 30) return firstLine;
-    return firstLine.substring(0, 30) + "...";
-  };
-
-  const getExcerpt = (content: string): string => {
-    // Eliminar encabezados
-    const contentWithoutHeaders = content.replace(/^#+ .+$/gm, "").trim();
-    if (contentWithoutHeaders) {
-      return contentWithoutHeaders;
-    }
-    return content;
-  };
-
-  const formatDateRelative = (timestamp: number): string => {
-    const date = new Date(timestamp);
-    const now = new Date();
-    const diffTime = Math.abs(now.getTime() - date.getTime());
-    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-
-    if (diffDays === 0) {
-      return t.notes.today;
-    } else if (diffDays === 1) {
-      return t.notes.yesterday;
-    } else if (diffDays < 7) {
-      return `${diffDays} ${t.notes.daysAgo}`;
-    } else {
-      return date.toLocaleDateString();
-    }
-  };
-
-  return (
-    <div
-      className="note-card"
-      data-note-id={note.id}
-      onClick={() => onView(note.id)}
-    >
-      <div className="note-card-inner">
-        <h2 className="note-title">{getNoteTitle(note.content)}</h2>
-        <div className="note-content">
-          <p className="note-preview">{getExcerpt(note.content)}</p>
-        </div>
-        <div className="note-meta">
-          <span className="note-time">
-            {formatDateRelative(note.updatedAt)}
-          </span>
-          <span className="note-length">
-            {note.content.length} {t.notes.characters}
-          </span>
-        </div>
-      </div>
-      <div className="note-card-actions">
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onView(note.id);
-          }}
-          className="view-button"
-        >
-          {t.notes.view}
-        </button>
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            if (window.confirm(t.notes.confirmDelete)) {
-              onDelete(note.id);
-            }
-          }}
-          className="delete-button"
-        >
-          {t.notes.delete}
-        </button>
-      </div>
-    </div>
-  );
-}
+import { EmptyState } from "./EmptyState";
+import { NoteCard } from "./NoteCard";
+import { getLocalStorageValue } from "../utils/note_utils";
 
 export default function NotesPage() {
   const { bookId } = useParams<{ bookId?: string }>();
@@ -174,21 +32,7 @@ export default function NotesPage() {
   const createSectionRef = useRef<HTMLDivElement>(null);
   const newNoteRef = useRef<HTMLTextAreaElement>(null);
 
-  // Función para obtener valor de localStorage con tipado seguro
-  function getLocalStorageValue<T>(key: string, defaultValue: T): T {
-    const value = localStorage.getItem(key);
-    if (value === null) return defaultValue;
-    try {
-      // Intentamos hacer una conversión segura
-      return value as unknown as T;
-    } catch (e) {
-      return defaultValue;
-    }
-  }
-
-  // Efecto para sincronizar con localStorage
   useEffect(() => {
-    // Función para actualizar configuraciones desde localStorage
     const updateSettingsFromStorage = () => {
       const storedView = getLocalStorageValue<"grid" | "list">(
         "cleanNotes-defaultView",
@@ -295,7 +139,6 @@ export default function NotesPage() {
       }
 
       if (!targetBookId) {
-        // Si no hay libros, primero creamos uno
         const newBook = await NotesService.addBook({
           name: t.books.defaultBook,
           emoji: "📓",
@@ -384,7 +227,6 @@ export default function NotesPage() {
     }
   };
 
-  // Filtrar y ordenar notas
   const filteredAndSortedNotes = state.notes
     .filter((note) => {
       if (!state.selectedBookId) return true;
