@@ -696,11 +696,6 @@ export default function NotePage() {
     return html;
   }
 
-  function getCurrentBook(bookId: string | undefined) {
-    if (!bookId) return null;
-    return state.books.find((b) => b.id === bookId);
-  }
-
   if (loading) {
     return (
       <div className="note-page-container">
