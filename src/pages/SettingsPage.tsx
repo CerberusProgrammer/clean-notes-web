@@ -122,11 +122,17 @@ export default function SettingsPage() {
     );
   };
 
-  // Función para cerrar sesión
   const handleLogout = () => {
     if (window.confirm(t.auth.confirmLogout)) {
       UserServices.logout();
       userDispatch({ type: "LOGOUT" });
+
+      // Limpiar también el estado de las notas
+      dispatch({
+        type: "LOAD_DATA",
+        payload: { books: [], notes: [] },
+      });
+
       navigate("/login");
     }
   };

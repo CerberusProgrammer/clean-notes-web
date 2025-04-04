@@ -378,12 +378,6 @@ export default function MainLayout({ children }: Props) {
             sidebarOpen && (
               <div className="no-books-message">
                 <p>{t.books.noBooks}</p>
-                <button
-                  onClick={() => setNewBookModalOpen(true)}
-                  className="create-first-book-button"
-                >
-                  {t.books.createFirstBook}
-                </button>
               </div>
             )
           ) : (
@@ -465,12 +459,6 @@ export default function MainLayout({ children }: Props) {
                         .length === 0 ? (
                         <div className="empty-book-message">
                           <span>{t.notes.noNotesInBook}</span>
-                          <button
-                            onClick={() => handleCreateNote(book.id)}
-                            className="create-note-button-small"
-                          >
-                            + {t.notes.newNote}
-                          </button>
                         </div>
                       ) : (
                         state.notes

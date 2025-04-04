@@ -182,8 +182,8 @@
   align-items: center;
   justify-content: center;
   gap: var(--space-xs);
-  width: 100%;
-  padding: var(--space-xs) var(--space-sm);
+  width: 95%;
+  padding: var(--space-xs);
   background-color: var(--primary-light);
   color: var(--primary);
   border-radius: var(--radius-md);
@@ -415,7 +415,7 @@
 }
 
 /* Mensaje sin libros */
-.no-books-message {
+.no-books-message p {
   padding: var(--space-sm);
   text-align: center;
   color: var(--text-tertiary);

@@ -2,12 +2,45 @@ import { Book, Note } from "./Note";
 import { v4 as uuidv4 } from "uuid";
 
 // Implementación de almacenamiento local para simular persistencia
-const STORAGE_KEY = "clean_notes_data";
+const STORAGE_KEY_PREFIX = "clean_notes_data_user_";
+const INITIALIZED_FLAG_SUFFIX = "_initialized";
+
+// Función para obtener la clave de almacenamiento específica del usuario
+const getUserStorageKey = (): string => {
+  try {
+    const authData = localStorage.getItem("clean-notes-auth");
+    if (!authData) return `${STORAGE_KEY_PREFIX}anonymous`;
+
+    const userData = JSON.parse(authData);
+    if (!userData.user || !userData.user.id)
+      return `${STORAGE_KEY_PREFIX}anonymous`;
+
+    return `${STORAGE_KEY_PREFIX}${userData.user.id}`;
+  } catch (error) {
+    console.error("Error al obtener el ID del usuario:", error);
+    return `${STORAGE_KEY_PREFIX}anonymous`;
+  }
+};
+
+// Función para verificar si el usuario ha inicializado sus datos
+const isUserDataInitialized = (): boolean => {
+  const storageKey = getUserStorageKey();
+  return (
+    localStorage.getItem(`${storageKey}${INITIALIZED_FLAG_SUFFIX}`) === "true"
+  );
+};
+
+// Función para marcar los datos del usuario como inicializados
+const markUserDataAsInitialized = (): void => {
+  const storageKey = getUserStorageKey();
+  localStorage.setItem(`${storageKey}${INITIALIZED_FLAG_SUFFIX}`, "true");
+};
 
 // Función auxiliar para obtener datos almacenados
 const getStoredData = (): { books: Book[]; notes: Note[] } => {
   try {
-    const storedData = localStorage.getItem(STORAGE_KEY);
+    const storageKey = getUserStorageKey();
+    const storedData = localStorage.getItem(storageKey);
     if (storedData) {
       const parsedData = JSON.parse(storedData);
       return {
@@ -25,7 +58,13 @@ const getStoredData = (): { books: Book[]; notes: Note[] } => {
 // Función auxiliar para guardar datos
 const saveData = (books: Book[], notes: Note[]): void => {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ books, notes }));
+    const storageKey = getUserStorageKey();
+    localStorage.setItem(storageKey, JSON.stringify({ books, notes }));
+
+    // Si estamos guardando datos, marcamos como inicializado
+    if (books.length > 0 || notes.length > 0) {
+      markUserDataAsInitialized();
+    }
   } catch (error) {
     console.error("Error al guardar datos en el almacenamiento:", error);
   }
@@ -103,12 +142,14 @@ export class NotesService {
     // Verificar si ya hay datos almacenados
     const { books, notes } = getStoredData();
 
-    // Si no hay datos, inicializar con los datos de ejemplo
-    if (books.length === 0 && notes.length === 0) {
+    // Si no hay datos Y el usuario no ha inicializado sus datos antes,
+    // inicializar con los datos de ejemplo
+    if (books.length === 0 && notes.length === 0 && !isUserDataInitialized()) {
       saveData(sampleBooks, sampleNotes);
       return { books: sampleBooks, notes: sampleNotes };
     }
 
+    // Si ya está inicializado o tiene datos, respetar lo que tenga (aunque esté vacío)
     return { books, notes };
   }
 
@@ -276,6 +317,8 @@ export class NotesService {
     // También eliminamos todas las notas que pertenecen a este libro
     const filteredNotes = notes.filter((n) => n.bookId !== id);
 
+    // Aquí incluso si filteredBooks está vacío, no cargaremos datos de ejemplo
+    // porque la bandera de inicialización está activa
     saveData(filteredBooks, filteredNotes);
     return id;
   }
@@ -304,7 +347,25 @@ export class NotesService {
     // Simulación de tiempo de carga
     await new Promise((resolve) => setTimeout(resolve, 150));
 
-    localStorage.removeItem(STORAGE_KEY);
+    // Eliminar los datos del usuario pero conservar la bandera de inicialización
+    const storageKey = getUserStorageKey();
+    localStorage.removeItem(storageKey);
+
+    // Mantenemos la bandera de inicialización para que no se vuelvan a cargar
+    // los datos de ejemplo cuando el usuario ha borrado intencionalmente todo
+    markUserDataAsInitialized();
+  }
+
+  static async resetToDefault(): Promise<void> {
+    // Simulación de tiempo de carga
+    await new Promise((resolve) => setTimeout(resolve, 150));
+
+    // Eliminar totalmente los datos del usuario, incluyendo la bandera
+    const storageKey = getUserStorageKey();
+    localStorage.removeItem(storageKey);
+    localStorage.removeItem(`${storageKey}${INITIALIZED_FLAG_SUFFIX}`);
+
+    // Esto provocará que la próxima vez que se cargue getData() se carguen los datos de ejemplo
   }
 
   static async importData(notes: Note[], books: Book[]): Promise<void> {
