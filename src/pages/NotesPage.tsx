@@ -420,17 +420,6 @@ export default function NotesPage() {
         )}
       </div>
 
-      {!showCreateForm && filteredAndSortedNotes.length > 0 && (
-        <div className="floating-action">
-          <button
-            className="floating-create-button"
-            onClick={handleCreateNewNote}
-            aria-label={t.notes.newNote}
-          >
-            +
-          </button>
-        </div>
-      )}
     </div>
   );
 }
