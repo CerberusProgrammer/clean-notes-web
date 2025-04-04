@@ -1,0 +1,50 @@
+/* Importar estilos de LoginPage y extender para RegisterPage */
+@import "./LoginPage.css";
+
+/* Estilos específicos para la página de registro */
+.auth-form {
+  gap: 1rem;
+}
+
+/* Ajustes para pantallas pequeñas */
+@media (max-height: 700px) {
+  .auth-form {
+    gap: 0.75rem;
+  }
+
+  .auth-label {
+    margin-bottom: 0.2rem;
+  }
+
+  .auth-input {
+    height: 2.5rem;
+  }
+
+  .auth-form-icon {
+    height: 2.5rem;
+  }
+}
+
+/* Asegurar que todo el contenido sea visible en pantallas muy pequeñas */
+@media (max-height: 600px) {
+  .auth-card {
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+  }
+
+  .auth-header {
+    margin-bottom: 1rem;
+  }
+
+  .auth-form {
+    gap: 0.65rem;
+  }
+
+  .auth-divider {
+    margin: 0.75rem 0;
+  }
+
+  .auth-footer {
+    margin-top: 0.75rem;
+  }
+}
