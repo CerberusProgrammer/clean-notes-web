@@ -306,4 +306,12 @@ export class NotesService {
 
     localStorage.removeItem(STORAGE_KEY);
   }
+
+  static async importData(notes: Note[], books: Book[]): Promise<void> {
+    // Simulación de tiempo de carga
+    await new Promise((resolve) => setTimeout(resolve, 250));
+
+    // Guardar los datos importados
+    saveData(books, notes);
+  }
 }
