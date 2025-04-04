@@ -8,5 +8,34 @@
   "orientation": "portrait",
   "lang": "es-ES",
   "dir": "ltr",
-  "description": "Toma notas con Markdown, organiza en libros y mejora tu productividad."
+  "description": "Toma notas con Markdown, organiza en libros y mejora tu productividad.",
+  "icons": [
+    {
+      "src": "/icons/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/favicon.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/favicon.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Nueva Nota",
+      "short_name": "Nueva",
+      "description": "Crear una nueva nota",
+      "url": "/?new=true",
+      "icons": [{ "src": "/icons/favicon.svg", "sizes": "192x192" }]
+    }
+  ]
 }

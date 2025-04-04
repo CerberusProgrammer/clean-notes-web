@@ -7,26 +7,17 @@
       content="width=device-width, initial-scale=1.0, maximum-scale=5.0"
     />
 
-    <!-- Favicon y íconos -->
+    <!-- Favicon único SVG -->
     <link rel="icon" type="image/svg+xml" href="/icons/favicon.svg" />
-    <link
-      rel="apple-touch-icon"
-      sizes="180x180"
-      href="/icons/apple-touch-icon.png"
-    />
-    <link
-      rel="icon"
-      type="image/png"
-      sizes="32x32"
-      href="/icons/favicon-32x32.png"
-    />
-    <link
-      rel="icon"
-      type="image/png"
-      sizes="16x16"
-      href="/icons/favicon-16x16.png"
-    />
+
+    <!-- Soporte para navegadores antiguos y dispositivos móviles -->
+    <link rel="mask-icon" href="/icons/favicon.svg" color="#3b82f6" />
+    <link rel="shortcut icon" href="/icons/favicon.svg" />
+
+    <!-- Manifest -->
     <link rel="manifest" href="/site.webmanifest" />
+
+    <!-- Tema -->
     <meta
       name="theme-color"
       content="#ffffff"
@@ -64,16 +55,15 @@
       property="og:description"
       content="Toma notas con formato Markdown, organiza en libros y mejora tu productividad con esta app minimalista para tus ideas."
     />
-    <meta property="og:image" content="https://cleanotes.netlify.app/" />
     <meta
-      property="og:image:alt"
-      content="Interfaz de Clean Notes mostrando editor y notas"
+      property="og:image"
+      content="https://cleanotes.netlify.app/icons/favicon.svg"
     />
     <meta property="og:locale" content="es_ES" />
     <meta property="og:locale:alternate" content="en_US" />
 
     <!-- Twitter -->
-    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:card" content="summary" />
     <meta name="twitter:url" content="https://cleanotes.netlify.app/" />
     <meta
       name="twitter:title"
@@ -85,18 +75,16 @@
     />
     <meta
       name="twitter:image"
-      content="https://clean-notes.ejemplo.com/social-preview.png"
+      content="https://cleanotes.netlify.app/icons/favicon.svg"
     />
-
-    <!-- Preconecta a orígenes externos para mejorar rendimiento -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 
     <!-- PWA soporte -->
     <meta name="application-name" content="Clean Notes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="Clean Notes" />
+    <!-- Usar el mismo SVG para Apple -->
+    <link rel="apple-touch-icon" href="/icons/favicon.svg" />
     <meta name="format-detection" content="telephone=no" />
     <meta name="mobile-web-app-capable" content="yes" />
 
@@ -161,19 +149,6 @@
           </p>
         </noscript>
       </div>
-    </div>
-
-    <!-- Descripción de la aplicación para SEO (oculta visualmente) -->
-    <div style="display: none" aria-hidden="true">
-      <h1>Clean Notes - Aplicación de notas con Markdown</h1>
-      <p>
-        Clean Notes es una aplicación para tomar notas que te permite organizar
-        tus ideas de forma eficiente. Características principales: - Editor de
-        Markdown con vista previa en tiempo real - Organización de notas en
-        libros personalizables - Soporte para español e inglés - Modo oscuro y
-        claro - Búsqueda rápida de notas - Diferentes vistas para organizar tus
-        notas - Interfaz minimalista enfocada en la escritura
-      </p>
     </div>
   </body>
 </html>
