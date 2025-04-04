@@ -261,6 +261,8 @@ export class UserServices {
    */
   static logout(): void {
     localStorage.removeItem(this.AUTH_KEY);
+
+    window.dispatchEvent(new CustomEvent("userLogout"));
   }
 
   /**
