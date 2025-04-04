@@ -20,17 +20,14 @@ export default function NotesPage() {
   const [isCreating, setIsCreating] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
-  // Referencias para permitir focus con atajos de teclado
   const searchInputRef = useRef<HTMLInputElement>(null);
   const createSectionRef = useRef<HTMLDivElement>(null);
   const newNoteRef = useRef<HTMLTextAreaElement>(null);
 
-  // Estado para vistas
   const [view, setView] = useState<"grid" | "list">(() =>
     getLocalStorageValue("cleanNotes-defaultView", "grid")
   );
 
-  // Estado para ordenación
   const [sortBy, setSortBy] = useState<"newest" | "oldest" | "updated">(() =>
     getLocalStorageValue("cleanNotes-defaultSort", "newest")
   );
@@ -38,14 +35,12 @@ export default function NotesPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [showCreateForm, setShowCreateForm] = useState(false);
 
-  // Efecto para verificar y actualizar el ID del libro seleccionado
   useEffect(() => {
     if (bookId && bookId !== state.selectedBookId) {
       dispatch({ type: "SELECT_BOOK", payload: { id: bookId } });
     }
   }, [bookId, state.selectedBookId, dispatch]);
 
-  // Detectar si es móvil
   useEffect(() => {
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 768);
@@ -59,33 +54,40 @@ export default function NotesPage() {
     };
   }, []);
 
-  // Configurar los atajos de teclado
   const { helpVisible, setHelpVisible, shortcuts } = useKeyboardShortcuts([
     {
-      combination: { key: "n", ctrlKey: true, description: "Crear nueva nota" },
+      combination: {
+        key: "e",
+        ctrlKey: true,
+        description: t.shortcuts.createNote,
+      },
       action: handleCreateNewNote,
     },
     {
-      combination: { key: "o", ctrlKey: true, description: "Buscar notas" },
+      combination: { key: "o", ctrlKey: true, description: t.shortcuts.search },
       action: () => searchInputRef.current?.focus(),
     },
     {
       combination: {
         key: "g",
         ctrlKey: true,
-        description: "Vista de cuadrícula",
+        description: t.shortcuts.gridView,
       },
       action: () => handleViewChange("grid"),
     },
     {
-      combination: { key: "l", ctrlKey: true, description: "Vista de lista" },
+      combination: {
+        key: "l",
+        ctrlKey: true,
+        description: t.shortcuts.listView,
+      },
       action: () => handleViewChange("list"),
     },
     {
       combination: {
         key: "s",
         ctrlKey: true,
-        description: "Cambiar ordenación",
+        description: t.shortcuts.changeSorting,
       },
       action: cycleSorting,
     },
@@ -93,14 +95,14 @@ export default function NotesPage() {
       combination: {
         key: "h",
         ctrlKey: true,
-        description: "Mostrar/ocultar ayuda",
+        description: t.shortcuts.toggleHelp,
       },
-      action: () => {}, // Manejado internamente por el hook
+      action: () => {},
     },
     {
       combination: {
         key: "Escape",
-        description: "Cerrar ventanas/formularios",
+        description: t.shortcuts.closeWindow,
       },
       action: handleEscape,
     },

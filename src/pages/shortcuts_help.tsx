@@ -1,4 +1,5 @@
 import "./shortcuts_help.css";
+import { useTranslation } from "../i18n/locales/i18nHooks";
 
 type KeyCombination = {
   key: string;
@@ -14,6 +15,8 @@ type ShortcutsHelpProps = {
 };
 
 export function ShortcutsHelp({ shortcuts, onClose }: ShortcutsHelpProps) {
+  const { t } = useTranslation();
+
   return (
     <div className="shortcuts-help-overlay" onClick={onClose}>
       <div
@@ -21,7 +24,7 @@ export function ShortcutsHelp({ shortcuts, onClose }: ShortcutsHelpProps) {
         onClick={(e) => e.stopPropagation()}
       >
         <div className="shortcuts-help-header">
-          <h2>Atajos de Teclado</h2>
+          <h2>{t.shortcuts.keyboardShortcuts}</h2>
           <button className="close-help-button" onClick={onClose}>
             ×
           </button>
@@ -31,8 +34,8 @@ export function ShortcutsHelp({ shortcuts, onClose }: ShortcutsHelpProps) {
           <table className="shortcuts-table">
             <thead>
               <tr>
-                <th>Combinación</th>
-                <th>Acción</th>
+                <th>{t.shortcuts.combination}</th>
+                <th>{t.shortcuts.action}</th>
               </tr>
             </thead>
             <tbody>
@@ -52,10 +55,7 @@ export function ShortcutsHelp({ shortcuts, onClose }: ShortcutsHelpProps) {
         </div>
 
         <div className="shortcuts-help-footer">
-          <p className="help-tip">
-            Presiona <span className="key">Esc</span> o{" "}
-            <span className="key">Ctrl+H</span> para cerrar
-          </p>
+          <p className="help-tip">{t.shortcuts.closeHelp}</p>
         </div>
       </div>
     </div>
