@@ -2,7 +2,8 @@
 
 Clean Notes es una aplicación minimalista para tomar notas con formato Markdown, diseñada para organizar tus ideas de forma eficiente y mejorar tu productividad.
 
-![Clean Notes Logo](https://cleanotes.netlify.app/)
+![image](https://github.com/user-attachments/assets/ef6534a2-0c5b-4b9c-8cdb-cb238d90f8b2)
+
 
 ## Sobre el proyecto
 
