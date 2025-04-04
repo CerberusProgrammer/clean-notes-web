@@ -532,6 +532,16 @@
   white-space: nowrap;
 }
 
+.shortcut-help-button {
+  background: none;
+  border: none;
+  color: var(--text-tertiary);
+  font-size: 0.9rem;
+  cursor: pointer;
+  padding: var(--space-xs);
+  box-shadow: none;
+}
+
 .floating-action {
   position: fixed;
   bottom: var(--space-lg);

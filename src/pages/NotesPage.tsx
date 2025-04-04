@@ -7,6 +7,8 @@ import "./NotesPage.css";
 import { EmptyState } from "./EmptyState";
 import { NoteCard } from "./NoteCard";
 import { getLocalStorageValue } from "../utils/note_utils";
+import { useKeyboardShortcuts } from "../provider/keyshortcuts_hooks";
+import { ShortcutsHelp } from "./shortcuts_help";
 
 export default function NotesPage() {
   const { bookId } = useParams<{ bookId?: string }>();
@@ -16,21 +18,110 @@ export default function NotesPage() {
   const [newNoteContent, setNewNoteContent] = useState("");
   const [isLoading, setIsLoading] = useState(state.notes.length === 0);
   const [isCreating, setIsCreating] = useState(false);
+  const [, setIsMobile] = useState(false);
 
-  // Modificado para detectar cambios en localStorage
+  // Referencias para permitir focus con atajos de teclado
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const createSectionRef = useRef<HTMLDivElement>(null);
+  const newNoteRef = useRef<HTMLTextAreaElement>(null);
+
+  // Estado para vistas
   const [view, setView] = useState<"grid" | "list">(() =>
     getLocalStorageValue("cleanNotes-defaultView", "grid")
   );
 
-  // Modificado para detectar cambios en localStorage
+  // Estado para ordenación
   const [sortBy, setSortBy] = useState<"newest" | "oldest" | "updated">(() =>
     getLocalStorageValue("cleanNotes-defaultSort", "newest")
   );
 
   const [searchTerm, setSearchTerm] = useState("");
   const [showCreateForm, setShowCreateForm] = useState(false);
-  const createSectionRef = useRef<HTMLDivElement>(null);
-  const newNoteRef = useRef<HTMLTextAreaElement>(null);
+
+  // Detectar si es móvil
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+
+    return () => {
+      window.removeEventListener("resize", checkMobile);
+    };
+  }, []);
+
+  // Configurar los atajos de teclado
+  const { helpVisible, setHelpVisible, shortcuts } = useKeyboardShortcuts([
+    {
+      combination: { key: "e", ctrlKey: true, description: "Crear nueva nota" },
+      action: handleCreateNewNote,
+    },
+    {
+      combination: { key: "o", ctrlKey: true, description: "Buscar notas" },
+      action: () => searchInputRef.current?.focus(),
+    },
+    {
+      combination: {
+        key: "g",
+        ctrlKey: true,
+        description: "Vista de cuadrícula",
+      },
+      action: () => handleViewChange("grid"),
+    },
+    {
+      combination: { key: "l", ctrlKey: true, description: "Vista de lista" },
+      action: () => handleViewChange("list"),
+    },
+    {
+      combination: {
+        key: "s",
+        ctrlKey: true,
+        description: "Cambiar ordenación",
+      },
+      action: cycleSorting,
+    },
+    {
+      combination: {
+        key: "h",
+        ctrlKey: true,
+        description: "Mostrar/ocultar ayuda",
+      },
+      action: () => {}, // Manejado internamente por el hook
+    },
+    {
+      combination: {
+        key: "Escape",
+        description: "Cerrar ventanas/formularios",
+      },
+      action: handleEscape,
+    },
+  ]);
+
+  // Función para ciclar entre los métodos de ordenación
+  function cycleSorting() {
+    const sortOptions: ("newest" | "oldest" | "updated")[] = [
+      "newest",
+      "oldest",
+      "updated",
+    ];
+    const currentIndex = sortOptions.indexOf(sortBy);
+    const nextIndex = (currentIndex + 1) % sortOptions.length;
+    const newSort = sortOptions[nextIndex];
+
+    setSortBy(newSort);
+    localStorage.setItem("cleanNotes-defaultSort", newSort);
+  }
+
+  // Función para manejar la tecla Escape
+  function handleEscape() {
+    if (helpVisible) {
+      setHelpVisible(false);
+    } else if (showCreateForm) {
+      handleCancelCreate();
+    }
+  }
 
   useEffect(() => {
     const updateSettingsFromStorage = () => {
@@ -109,7 +200,7 @@ export default function NotesPage() {
     }
   }, [showCreateForm]);
 
-  const handleCreateNewNote = () => {
+  function handleCreateNewNote() {
     setShowCreateForm(true);
     setNewNoteContent("");
 
@@ -121,7 +212,7 @@ export default function NotesPage() {
         });
       }
     }, 100);
-  };
+  }
 
   const handleSubmitNote = async (e?: React.FormEvent) => {
     e?.preventDefault();
@@ -267,9 +358,6 @@ export default function NotesPage() {
           ) : (
             <>
               <h1>{t.app.allNotes}</h1>
-              <p className="subtitle">
-                {filteredAndSortedNotes.length} {t.notes.sortNewest}
-              </p>
             </>
           )}
         </div>
@@ -313,7 +401,15 @@ export default function NotesPage() {
                 <div className="char-count">
                   {newNoteContent.length} {t.notes.characters}
                 </div>
-                <div className="keyboard-hint">{t.notes.pressEnter}</div>
+                <div className="keyboard-hint">
+                  {t.notes.pressEnter}{" "}
+                  <span
+                    className="tooltip"
+                    title="Presiona Ctrl+H para ver todos los atajos"
+                  >
+                    (?)
+                  </span>
+                </div>
               </div>
               <div className="form-buttons">
                 <button
@@ -346,9 +442,10 @@ export default function NotesPage() {
         <div className="search-bar">
           <span className="search-icon">🔍</span>
           <input
+            ref={searchInputRef}
             type="text"
             className="search-input"
-            placeholder={t.notes.search}
+            placeholder={`${t.notes.search} (Ctrl+O)`}
             value={searchTerm}
             onChange={handleSearchChange}
           />
@@ -367,16 +464,16 @@ export default function NotesPage() {
             <button
               className={`view-option ${view === "grid" ? "active" : ""}`}
               onClick={() => handleViewChange("grid")}
-              aria-label={t.settings.grid}
-              title={t.settings.grid}
+              aria-label={`${t.settings.grid} (Ctrl+G)`}
+              title={`${t.settings.grid} (Ctrl+G)`}
             >
               <span className="view-icon">◫</span>
             </button>
             <button
               className={`view-option ${view === "list" ? "active" : ""}`}
               onClick={() => handleViewChange("list")}
-              aria-label={t.settings.list}
-              title={t.settings.list}
+              aria-label={`${t.settings.list} (Ctrl+L)`}
+              title={`${t.settings.list} (Ctrl+L)`}
             >
               <span className="view-icon">☰</span>
             </button>
@@ -386,11 +483,19 @@ export default function NotesPage() {
             value={sortBy}
             onChange={handleSortChange}
             aria-label={t.settings.defaultSort}
+            title={`${t.settings.defaultSort} (Ctrl+S para cambiar)`}
           >
             <option value="newest">{t.notes.sortNewest}</option>
             <option value="oldest">{t.notes.sortOldest}</option>
             <option value="updated">{t.notes.recentlyUpdated}</option>
           </select>
+          <button
+            className="shortcut-help-button"
+            onClick={() => setHelpVisible(true)}
+            title="Atajos de teclado (Ctrl+H)"
+          >
+            ⌨️
+          </button>
         </div>
       </div>
 
@@ -414,16 +519,26 @@ export default function NotesPage() {
         )}
       </div>
 
+      {/* Botón flotante para crear nota nueva */}
       {!showCreateForm && filteredAndSortedNotes.length > 0 && (
         <div className="floating-action">
           <button
             className="floating-create-button"
             onClick={handleCreateNewNote}
-            aria-label={t.notes.newNote}
+            aria-label={`${t.notes.newNote} (Ctrl+N)`}
+            title={`${t.notes.newNote} (Ctrl+N)`}
           >
             +
           </button>
         </div>
+      )}
+
+      {/* Modal de ayuda de atajos de teclado */}
+      {helpVisible && (
+        <ShortcutsHelp
+          shortcuts={shortcuts}
+          onClose={() => setHelpVisible(false)}
+        />
       )}
     </div>
   );
