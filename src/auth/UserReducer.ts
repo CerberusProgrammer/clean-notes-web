@@ -23,6 +23,11 @@ export const userReducer = (
         isError: true,
         error: action.payload,
       };
+    case "UPDATE_USER":
+      return {
+        ...state,
+        user: action.payload.user,
+      };
     case "LOGOUT":
       return { ...state, user: null, isAuthenticated: false, isAdmin: false };
     default:
