@@ -51,9 +51,10 @@
   --radius-lg: 12px;
   --radius-xl: 16px;
   --radius-full: 9999px;
-  --sidebar-width: 300px;
-  --sidebar-collapsed-width: 70px;
-  --header-height: 60px;
+  --sidebar-width: 260px;
+  --sidebar-collapsed-width: 60px;
+  --header-height: 54px;
+  --sidebar-item-height: 36px;
   --transition-quick: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
   --transition-normal: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   --transition-bounce: 0.5s cubic-bezier(0.18, 1.25, 0.4, 1);
@@ -216,7 +217,7 @@ body {
   position: relative;
   overflow-x: hidden;
   flex-shrink: 0;
-  box-shadow: var(--shadow);
+  font-size: 0.9rem;
 }
 
 .sidebar.closed {
@@ -225,7 +226,7 @@ body {
 
 .sidebar-header {
   height: var(--header-height);
-  padding: var(--space-md);
+  padding: var(--space-sm) var(--space-md);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -235,7 +236,7 @@ body {
 .app-logo {
   display: flex;
   align-items: center;
-  font-size: 1.1rem;
+  font-size: 0.8rem;
   font-weight: 600;
   color: var(--text-primary);
   margin: 0;
@@ -243,7 +244,7 @@ body {
 }
 
 .logo-icon {
-  font-size: 1.4rem;
+  font-size: 1rem;
   margin-right: var(--space-sm);
   flex-shrink: 0;
 }
