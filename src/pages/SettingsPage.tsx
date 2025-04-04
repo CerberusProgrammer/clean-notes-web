@@ -1,18 +1,27 @@
-import { useState, useContext, useEffect } from "react";
-import { NotesContext } from "../provider/NotesContext";
+import { useContext, useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useTranslation } from "../i18n/locales/i18nHooks";
-import { LocaleCode } from "../i18n/locales/locales";
+import { NotesContext } from "../provider/NotesContext";
 import { NotesService } from "../provider/NotesService";
-import "./SettingsPage.css";
 import {
+  ThemeColor,
   getThemeColor,
   setThemeColor,
-  ThemeColor,
 } from "../utils/theme_provider";
+import "./SettingsPage.css";
+import { LocaleCode } from "../i18n/locales/locales";
+import { UserContext } from "../auth/UserContext";
+import { UserServices } from "../auth/UserServices";
 
 export default function SettingsPage() {
   const { t, locale, changeLocale } = useTranslation();
-  const { state, dispatch } = useContext(NotesContext);
+  const { dispatch } = useContext(NotesContext);
+  const { state: userState, dispatch: userDispatch } = useContext(UserContext);
+  const navigate = useNavigate();
+
+  // Estado para el usuario
+  const [userName, setUserName] = useState(userState.user?.name || "");
+  const [isEditingName, setIsEditingName] = useState(false);
 
   // Estado para opciones de configuración
   const [language, setLanguage] = useState<LocaleCode>(locale);
@@ -46,6 +55,13 @@ export default function SettingsPage() {
 
   const [showSuccess, setShowSuccess] = useState(false);
 
+  // Actualizar el nombre de usuario cuando cambia userState
+  useEffect(() => {
+    if (userState.user?.name) {
+      setUserName(userState.user.name);
+    }
+  }, [userState.user]);
+
   // Sincronizar con los cambios externos
   useEffect(() => {
     setLanguage(locale);
@@ -77,6 +93,54 @@ export default function SettingsPage() {
       );
     };
   }, []);
+
+  // Función para cerrar sesión
+  const handleLogout = () => {
+    if (window.confirm(t.auth.confirmLogout)) {
+      UserServices.logout();
+      userDispatch({ type: "LOGOUT" });
+      navigate("/login");
+    }
+  };
+
+  // Función para actualizar el nombre del usuario
+  const handleUpdateUserName = async () => {
+    if (!userState.user || !userName.trim()) return;
+
+    try {
+      // En una aplicación real, aquí actualizaríamos el nombre en el backend
+      // Por ahora simulamos la actualización en localStorage
+      const updatedUser = {
+        ...userState.user,
+        name: userName.trim(),
+      };
+
+      const authData = UserServices.checkAuthentication();
+
+      if (authData.user) {
+        // Actualizamos la sesión del usuario en localStorage
+        localStorage.setItem(
+          "clean-notes-auth",
+          JSON.stringify({
+            ...JSON.parse(localStorage.getItem("clean-notes-auth") || "{}"),
+            user: updatedUser,
+          })
+        );
+      }
+
+      // Actualizamos el estado global
+      userDispatch({
+        type: "UPDATE_USER",
+        payload: { user: updatedUser },
+      });
+
+      setIsEditingName(false);
+      setShowSuccess(true);
+      setTimeout(() => setShowSuccess(false), 3000);
+    } catch (error) {
+      console.error("Error al actualizar el nombre de usuario:", error);
+    }
+  };
 
   // Aplicar cambio de tema inmediatamente
   const handleThemeChange = (isDark: boolean) => {
@@ -183,7 +247,7 @@ export default function SettingsPage() {
         const importData = JSON.parse(text);
 
         if (!importData.notes || !importData.books) {
-          throw new Error("Formato de archivo inválido");
+          throw new Error("Formato inválido");
         }
 
         // Implementar lógica para combinar o reemplazar datos existentes
@@ -194,60 +258,24 @@ export default function SettingsPage() {
         );
 
         if (confirmed) {
-          // Reemplazar todos los datos
           await NotesService.clearData();
-          for (const book of importData.books) {
-            await NotesService.addBook(book);
-          }
-          for (const note of importData.notes) {
-            await NotesService.addNote(note);
-          }
-
-          // Recargar datos
-          const freshData = await NotesService.getData();
+          await NotesService.importData(importData.notes, importData.books);
           dispatch({
             type: "LOAD_DATA",
-            payload: freshData,
+            payload: { notes: importData.notes, books: importData.books },
           });
         } else {
-          // Importar como datos adicionales
-          for (const book of importData.books) {
-            // Generar nuevo ID para evitar colisiones
-            const newBook = {
-              ...book,
-              id: crypto.randomUUID(),
-              updatedAt: Date.now(),
-              createdAt: Date.now(),
-            };
-            await NotesService.addBook(newBook);
-          }
+          const { notes, books } = await NotesService.getData();
 
-          const bookMapping: Record<string, string> = {};
-          importData.books.forEach((book: any, index: number) => {
-            const newBook =
-              state.books[state.books.length - importData.books.length + index];
-            if (newBook) {
-              bookMapping[book.id] = newBook.id;
-            }
-          });
+          // Combinar datos
+          const combinedNotes = [...notes, ...importData.notes];
+          const combinedBooks = [...books, ...importData.books];
 
-          for (const note of importData.notes) {
-            const newNote = {
-              ...note,
-              id: crypto.randomUUID(),
-              bookId:
-                bookMapping[note.bookId] || state.books[0]?.id || "default",
-              updatedAt: Date.now(),
-              createdAt: Date.now(),
-            };
-            await NotesService.addNote(newNote);
-          }
-
-          // Recargar datos
-          const freshData = await NotesService.getData();
+          // Guardar datos combinados
+          await NotesService.importData(combinedNotes, combinedBooks);
           dispatch({
             type: "LOAD_DATA",
-            payload: freshData,
+            payload: { notes: combinedNotes, books: combinedBooks },
           });
         }
 
@@ -293,6 +321,93 @@ export default function SettingsPage() {
     <div className="settings-page">
       <div className="settings-header">
         <h1 className="settings-title">{t.settings.title}</h1>
+      </div>
+
+      {/* Nueva sección de Perfil de Usuario */}
+      <div className="settings-section">
+        <div className="section-title">
+          <div className="section-title-icon">👤</div>
+          <h2>{t.settings.profile}</h2>
+        </div>
+
+        <div className="settings-group">
+          <div className="setting-row">
+            <div className="setting-label">
+              <span>{t.settings.email}</span>
+              <span className="setting-description">
+                {t.settings.emailDescription}
+              </span>
+            </div>
+            <div className="setting-control user-email">
+              {userState.user?.email || "-"}
+              {userState.user?.email?.includes("anonymous") && (
+                <span className="anonymous-tag">{t.auth.welcomeAnonymous}</span>
+              )}
+            </div>
+          </div>
+
+          <div className="setting-row">
+            <div className="setting-label">
+              <span>{t.settings.name}</span>
+              <span className="setting-description">
+                {t.settings.nameDescription}
+              </span>
+            </div>
+            <div className="setting-control">
+              {isEditingName ? (
+                <div className="edit-name-form">
+                  <input
+                    type="text"
+                    value={userName}
+                    onChange={(e) => setUserName(e.target.value)}
+                    className="settings-input"
+                    autoFocus
+                  />
+                  <div className="edit-name-actions">
+                    <button
+                      onClick={() => setIsEditingName(false)}
+                      className="secondary-button"
+                    >
+                      {t.common.cancel}
+                    </button>
+                    <button
+                      onClick={handleUpdateUserName}
+                      className="primary-button"
+                      disabled={!userName.trim()}
+                    >
+                      {t.common.save}
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="user-name-display">
+                  <span>{userState.user?.name || "-"}</span>
+                  <button
+                    onClick={() => setIsEditingName(true)}
+                    className="edit-button"
+                    aria-label={t.settings.editName}
+                  >
+                    ✎
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="setting-row">
+            <div className="setting-label">
+              <span>{t.auth.logout}</span>
+              <span className="setting-description">
+                {t.settings.logoutDescription}
+              </span>
+            </div>
+            <div className="setting-control">
+              <button onClick={handleLogout} className="danger-button">
+                {t.auth.logout}
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Sección de Apariencia */}
@@ -461,6 +576,9 @@ export default function SettingsPage() {
           <div className="setting-row">
             <div className="setting-label">
               <span>{t.settings.autoSave}</span>
+              <span className="setting-description">
+                {t.settings.autoSaveInterval}
+              </span>
             </div>
             <div className="setting-control">
               <label className="toggle-switch">
@@ -481,12 +599,12 @@ export default function SettingsPage() {
             <div className="setting-control">
               <input
                 type="number"
-                className="number-input"
                 min="5"
                 max="120"
                 value={autoSaveInterval}
                 onChange={(e) => setAutoSaveInterval(parseInt(e.target.value))}
                 disabled={!autoSave}
+                className="number-input"
               />
               <span>{t.settings.seconds}</span>
             </div>
@@ -519,26 +637,47 @@ export default function SettingsPage() {
         </div>
 
         <div className="settings-group">
-          <button className="settings-button" onClick={exportNotes}>
-            <span>📤</span> {t.settings.exportNotes}
-          </button>
+          <div className="setting-row">
+            <div className="setting-label">
+              <span>{t.settings.exportNotes}</span>
+              <span className="setting-description">
+                {t.settings.exportDescription}
+              </span>
+            </div>
+            <div className="setting-control">
+              <button onClick={exportNotes} className="primary-button">
+                {t.settings.exportNotes}
+              </button>
+            </div>
+          </div>
 
-          <button className="settings-button" onClick={importNotes}>
-            <span>📥</span> {t.settings.importNotes}
-          </button>
+          <div className="setting-row">
+            <div className="setting-label">
+              <span>{t.settings.importNotes}</span>
+              <span className="setting-description">
+                {t.settings.importDescription}
+              </span>
+            </div>
+            <div className="setting-control">
+              <button onClick={importNotes} className="primary-button">
+                {t.settings.importNotes}
+              </button>
+            </div>
+          </div>
 
-          <button
-            className="settings-button danger-action"
-            onClick={clearAllData}
-          >
-            <span>🗑️</span> {t.settings.clearData}
-          </button>
-          <p
-            className="setting-description"
-            style={{ textAlign: "center", marginTop: "8px" }}
-          >
-            {t.settings.clearDataWarning}
-          </p>
+          <div className="setting-row">
+            <div className="setting-label">
+              <span>{t.settings.clearData}</span>
+              <span className="setting-description danger-text">
+                {t.settings.clearDataWarning}
+              </span>
+            </div>
+            <div className="setting-control">
+              <button onClick={clearAllData} className="danger-button">
+                {t.settings.clearData}
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
