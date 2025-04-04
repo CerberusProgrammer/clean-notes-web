@@ -18,7 +18,7 @@ export default function NotesPage() {
   const [newNoteContent, setNewNoteContent] = useState("");
   const [isLoading, setIsLoading] = useState(state.notes.length === 0);
   const [isCreating, setIsCreating] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
+  const [, setIsMobile] = useState(false);
 
   const searchInputRef = useRef<HTMLInputElement>(null);
   const createSectionRef = useRef<HTMLDivElement>(null);
@@ -527,34 +527,6 @@ export default function NotesPage() {
           ))
         )}
       </div>
-
-      {/* Botón flotante para crear nota nueva */}
-      {isMobile && (
-        <div className="floating-action">
-          <button
-            className="floating-create-button"
-            onClick={handleCreateNewNote}
-            aria-label={`${t.notes.newNote} (Ctrl+N)`}
-            title={`${t.notes.newNote} (Ctrl+N)`}
-          >
-            +
-          </button>
-        </div>
-      )}
-
-      {/* Si no es móvil, mostrar botón flotante solo cuando no se muestra el formulario */}
-      {!isMobile && !showCreateForm && filteredAndSortedNotes.length > 0 && (
-        <div className="floating-action">
-          <button
-            className="floating-create-button"
-            onClick={handleCreateNewNote}
-            aria-label={`${t.notes.newNote} (Ctrl+N)`}
-            title={`${t.notes.newNote} (Ctrl+N)`}
-          >
-            +
-          </button>
-        </div>
-      )}
 
       {/* Modal de ayuda de atajos de teclado */}
       {helpVisible && (
