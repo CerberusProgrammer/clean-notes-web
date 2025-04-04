@@ -1,8 +1,8 @@
 {
   "name": "clean-notes-web",
-  "description": "A web application for managing & sharing notes using Firebase",
+  "description": "Organize and access all your ideas in one place",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.2.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
