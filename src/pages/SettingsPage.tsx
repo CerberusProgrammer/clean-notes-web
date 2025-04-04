@@ -618,43 +618,6 @@ export default function SettingsPage() {
         <div className="settings-group">
           <div className="setting-row">
             <div className="setting-label">
-              <span>{t.settings.autoSave}</span>
-              <span className="setting-description">
-                {t.settings.autoSaveInterval}
-              </span>
-            </div>
-            <div className="setting-control">
-              <label className="toggle-switch">
-                <input
-                  type="checkbox"
-                  checked={autoSave}
-                  onChange={(e) => setAutoSave(e.target.checked)}
-                />
-                <span className="toggle-slider"></span>
-              </label>
-            </div>
-          </div>
-
-          <div className="setting-row">
-            <div className="setting-label">
-              <span>{t.settings.autoSaveInterval}</span>
-            </div>
-            <div className="setting-control">
-              <input
-                type="number"
-                min="5"
-                max="120"
-                value={autoSaveInterval}
-                onChange={(e) => setAutoSaveInterval(parseInt(e.target.value))}
-                disabled={!autoSave}
-                className="number-input"
-              />
-              <span>{t.settings.seconds}</span>
-            </div>
-          </div>
-
-          <div className="setting-row">
-            <div className="setting-label">
               <span>{t.settings.preview}</span>
               <span className="setting-description">{t.editor.preview}</span>
             </div>
