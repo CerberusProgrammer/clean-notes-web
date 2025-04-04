@@ -13,6 +13,21 @@ import { LocaleCode } from "../i18n/locales/locales";
 import { UserContext } from "../auth/UserContext";
 import { UserServices } from "../auth/UserServices";
 
+// Evento personalizado para cambios en configuración
+interface SettingsChangedEvent extends Event {
+  detail: {
+    setting: string;
+    value: any;
+  };
+}
+
+// Declaración para TypeScript
+declare global {
+  interface WindowEventMap {
+    settingsChanged: SettingsChangedEvent;
+  }
+}
+
 export default function SettingsPage() {
   const { t, locale, changeLocale } = useTranslation();
   const { dispatch } = useContext(NotesContext);
@@ -94,6 +109,19 @@ export default function SettingsPage() {
     };
   }, []);
 
+  // Función para notificar cambios en configuración
+  const notifyConfigChange = (setting: string, value: any) => {
+    // Dispara un evento personalizado que puede ser escuchado por otros componentes
+    window.dispatchEvent(
+      new CustomEvent("settingsChanged", {
+        detail: {
+          setting,
+          value,
+        },
+      })
+    );
+  };
+
   // Función para cerrar sesión
   const handleLogout = () => {
     if (window.confirm(t.auth.confirmLogout)) {
@@ -165,6 +193,19 @@ export default function SettingsPage() {
     setThemeColor(selectedTheme);
   };
 
+  // Función para actualizar vista y orden predeterminados
+  const handleDefaultViewChange = (value: "grid" | "list") => {
+    setDefaultView(value);
+    localStorage.setItem("cleanNotes-defaultView", value);
+    notifyConfigChange("defaultView", value);
+  };
+
+  const handleDefaultSortChange = (value: "newest" | "oldest" | "updated") => {
+    setDefaultSort(value);
+    localStorage.setItem("cleanNotes-defaultSort", value);
+    notifyConfigChange("defaultSort", value);
+  };
+
   // Función para guardar todas las configuraciones
   const saveSettings = () => {
     // Cambiar idioma directamente, sin esperar a la persistencia
@@ -174,9 +215,11 @@ export default function SettingsPage() {
 
     // Guardar vista por defecto
     localStorage.setItem("cleanNotes-defaultView", defaultView);
+    notifyConfigChange("defaultView", defaultView);
 
     // Guardar orden por defecto
     localStorage.setItem("cleanNotes-defaultSort", defaultSort);
+    notifyConfigChange("defaultSort", defaultSort);
 
     // Guardar auto-guardado
     localStorage.setItem("cleanNotes-autoSave", autoSave.toString());
@@ -200,8 +243,8 @@ export default function SettingsPage() {
     setLanguage("es");
     handleThemeChange(false);
     handleColorThemeChange("blue");
-    setDefaultView("grid");
-    setDefaultSort("newest");
+    handleDefaultViewChange("grid");
+    handleDefaultSortChange("newest");
     setAutoSave(true);
     setAutoSaveInterval(30);
     setAutoPreview(false);
@@ -323,7 +366,7 @@ export default function SettingsPage() {
         <h1 className="settings-title">{t.settings.title}</h1>
       </div>
 
-      {/* Nueva sección de Perfil de Usuario */}
+      {/* Sección de Perfil de Usuario */}
       <div className="settings-section">
         <div className="section-title">
           <div className="section-title-icon">👤</div>
@@ -533,7 +576,7 @@ export default function SettingsPage() {
                 className="settings-select"
                 value={defaultView}
                 onChange={(e) =>
-                  setDefaultView(e.target.value as "grid" | "list")
+                  handleDefaultViewChange(e.target.value as "grid" | "list")
                 }
               >
                 <option value="grid">{t.settings.grid}</option>
@@ -551,7 +594,7 @@ export default function SettingsPage() {
                 className="settings-select"
                 value={defaultSort}
                 onChange={(e) =>
-                  setDefaultSort(
+                  handleDefaultSortChange(
                     e.target.value as "newest" | "oldest" | "updated"
                   )
                 }
@@ -641,7 +684,8 @@ export default function SettingsPage() {
             <div className="setting-label">
               <span>{t.settings.exportNotes}</span>
               <span className="setting-description">
-                {t.settings.exportDescription}
+                {t.settings.exportDescription ||
+                  "Exporta todas tus notas como archivo JSON"}
               </span>
             </div>
             <div className="setting-control">
@@ -655,7 +699,8 @@ export default function SettingsPage() {
             <div className="setting-label">
               <span>{t.settings.importNotes}</span>
               <span className="setting-description">
-                {t.settings.importDescription}
+                {t.settings.importDescription ||
+                  "Importa notas desde un archivo JSON"}
               </span>
             </div>
             <div className="setting-control">

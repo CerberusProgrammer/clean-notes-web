@@ -1,63 +1,154 @@
-import { useContext, useEffect, useState, useRef, memo, useMemo } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useContext, useEffect, useRef, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import { NotesContext } from "../provider/NotesContext";
 import { NotesService } from "../provider/NotesService";
 import { useTranslation } from "../i18n/locales/i18nHooks";
-import { Book } from "../provider/Note";
-import { NoteCard } from "../components/NoteCard";
 import "./NotesPage.css";
 
-const EmptyState = memo(
-  ({
-    searchTerm,
-    onClearSearch,
-    currentBook,
-    onCreateNote,
-  }: {
-    searchTerm: string;
-    onClearSearch: () => void;
-    currentBook: Book | null;
-    onCreateNote: () => void;
-  }) => {
-    const { t } = useTranslation();
+type EmptyStateProps = {
+  searchTerm: string;
+  onClearSearch: () => void;
+  currentBook: { id: string; name: string; emoji?: string } | null;
+  onCreateNote: () => void;
+};
 
-    if (searchTerm) {
-      return (
-        <div className="empty-state">
-          <div className="empty-state-icon">🔍</div>
-          <h3>{t.notes.noResults}</h3>
-          <p>
-            {t.notes.noMatchingNotes} "{searchTerm}"
-          </p>
-          <button onClick={onClearSearch} className="secondary-button">
-            {t.notes.clearSearch}
-          </button>
-        </div>
-      );
-    }
+function EmptyState({
+  searchTerm,
+  onClearSearch,
+  currentBook,
+  onCreateNote,
+}: EmptyStateProps) {
+  const { t } = useTranslation();
 
+  if (searchTerm) {
     return (
       <div className="empty-state">
-        <div className="empty-state-icon">
-          {currentBook ? currentBook.emoji : "📝"}
-        </div>
-        <h3>
-          {currentBook
-            ? `${t.notes.noNotesInBook} ${currentBook.name}`
-            : t.notes.noNotes}
-        </h3>
-        <p>{currentBook ? t.notes.noNotesInBookDesc : t.notes.noNotesDesc}</p>
-        <button
-          onClick={onCreateNote}
-          className="primary-button create-first-note-btn"
-        >
-          <span className="button-icon">+</span>
-          {t.notes.createFirstNote}
+        <div className="empty-state-icon">🔍</div>
+        <h3>{t.notes.noSearchResults}</h3>
+        <p>
+          {t.notes.noSearchResultsFor} <strong>"{searchTerm}"</strong>
+        </p>
+        <button onClick={onClearSearch} className="primary-button">
+          {t.notes.clearSearch}
         </button>
       </div>
     );
   }
-);
+
+  return (
+    <div className="empty-state">
+      <div className="empty-state-icon">{currentBook?.emoji || "📝"}</div>
+      <h3>
+        {currentBook
+          ? `${t.notes.noNotesInBook} ${currentBook.name}`
+          : t.notes.noNotes}
+      </h3>
+      <p>{t.notes.startByCreating}</p>
+      <button
+        onClick={onCreateNote}
+        className="primary-button create-first-note-btn"
+      >
+        <span className="button-icon">+</span>
+        <span>{t.notes.createFirstNote}</span>
+      </button>
+    </div>
+  );
+}
+
+type NoteCardProps = {
+  note: {
+    id: string;
+    content: string;
+    createdAt: number;
+    updatedAt: number;
+  };
+  onDelete: (id: string) => void;
+  onView: (id: string) => void;
+};
+
+function NoteCard({ note, onDelete, onView }: NoteCardProps) {
+  const { t } = useTranslation();
+
+  const getNoteTitle = (content: string): string => {
+    const headerMatch = content.match(/^#+ (.+)$/m);
+    if (headerMatch) return headerMatch[1];
+
+    const firstLine = content.split("\n")[0];
+    if (firstLine.length < 30) return firstLine;
+    return firstLine.substring(0, 30) + "...";
+  };
+
+  const getExcerpt = (content: string): string => {
+    // Eliminar encabezados
+    const contentWithoutHeaders = content.replace(/^#+ .+$/gm, "").trim();
+    if (contentWithoutHeaders) {
+      return contentWithoutHeaders;
+    }
+    return content;
+  };
+
+  const formatDateRelative = (timestamp: number): string => {
+    const date = new Date(timestamp);
+    const now = new Date();
+    const diffTime = Math.abs(now.getTime() - date.getTime());
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffDays === 0) {
+      return t.notes.today;
+    } else if (diffDays === 1) {
+      return t.notes.yesterday;
+    } else if (diffDays < 7) {
+      return `${diffDays} ${t.notes.daysAgo}`;
+    } else {
+      return date.toLocaleDateString();
+    }
+  };
+
+  return (
+    <div
+      className="note-card"
+      data-note-id={note.id}
+      onClick={() => onView(note.id)}
+    >
+      <div className="note-card-inner">
+        <h2 className="note-title">{getNoteTitle(note.content)}</h2>
+        <div className="note-content">
+          <p className="note-preview">{getExcerpt(note.content)}</p>
+        </div>
+        <div className="note-meta">
+          <span className="note-time">
+            {formatDateRelative(note.updatedAt)}
+          </span>
+          <span className="note-length">
+            {note.content.length} {t.notes.characters}
+          </span>
+        </div>
+      </div>
+      <div className="note-card-actions">
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onView(note.id);
+          }}
+          className="view-button"
+        >
+          {t.notes.view}
+        </button>
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            if (window.confirm(t.notes.confirmDelete)) {
+              onDelete(note.id);
+            }
+          }}
+          className="delete-button"
+        >
+          {t.notes.delete}
+        </button>
+      </div>
+    </div>
+  );
+}
 
 export default function NotesPage() {
   const { bookId } = useParams<{ bookId?: string }>();
@@ -67,34 +158,106 @@ export default function NotesPage() {
   const [newNoteContent, setNewNoteContent] = useState("");
   const [isLoading, setIsLoading] = useState(state.notes.length === 0);
   const [isCreating, setIsCreating] = useState(false);
-  const [view, setView] = useState<"grid" | "list">(
-    () =>
-      (localStorage.getItem("cleanNotes-defaultView") as "grid" | "list") ||
-      "grid"
+
+  // Modificado para detectar cambios en localStorage
+  const [view, setView] = useState<"grid" | "list">(() =>
+    getLocalStorageValue("cleanNotes-defaultView", "grid")
   );
+
+  // Modificado para detectar cambios en localStorage
+  const [sortBy, setSortBy] = useState<"newest" | "oldest" | "updated">(() =>
+    getLocalStorageValue("cleanNotes-defaultSort", "newest")
+  );
+
   const [searchTerm, setSearchTerm] = useState("");
-  const [sortBy, setSortBy] = useState<"newest" | "oldest" | "updated">(
-    () =>
-      (localStorage.getItem("cleanNotes-defaultSort") as
-        | "newest"
-        | "oldest"
-        | "updated") || "newest"
-  );
   const [showCreateForm, setShowCreateForm] = useState(false);
-  const newNoteRef = useRef<HTMLTextAreaElement>(null);
   const createSectionRef = useRef<HTMLDivElement>(null);
+  const newNoteRef = useRef<HTMLTextAreaElement>(null);
+
+  // Función para obtener valor de localStorage con tipado seguro
+  function getLocalStorageValue<T>(key: string, defaultValue: T): T {
+    const value = localStorage.getItem(key);
+    if (value === null) return defaultValue;
+    try {
+      // Intentamos hacer una conversión segura
+      return value as unknown as T;
+    } catch (e) {
+      return defaultValue;
+    }
+  }
+
+  // Efecto para sincronizar con localStorage
+  useEffect(() => {
+    // Función para actualizar configuraciones desde localStorage
+    const updateSettingsFromStorage = () => {
+      const storedView = getLocalStorageValue<"grid" | "list">(
+        "cleanNotes-defaultView",
+        "grid"
+      );
+      const storedSort = getLocalStorageValue<"newest" | "oldest" | "updated">(
+        "cleanNotes-defaultSort",
+        "newest"
+      );
+
+      if (view !== storedView) {
+        setView(storedView);
+      }
+
+      if (sortBy !== storedSort) {
+        setSortBy(storedSort);
+      }
+    };
+
+    // Escuchar el evento personalizado para la actualización de configuraciones
+    const handleSettingsChanged = () => {
+      updateSettingsFromStorage();
+    };
+
+    // Crear un gestor de eventos para el evento storage
+    const handleStorageChange = (e: StorageEvent) => {
+      if (
+        e.key === "cleanNotes-defaultView" ||
+        e.key === "cleanNotes-defaultSort"
+      ) {
+        updateSettingsFromStorage();
+      }
+    };
+
+    // Registrar los eventos
+    window.addEventListener("storage", handleStorageChange);
+    window.addEventListener("settingsChanged", handleSettingsChanged);
+
+    // Actualizar al montar el componente para asegurar la sincronización
+    updateSettingsFromStorage();
+
+    // Limpiar al desmontar
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+      window.removeEventListener("settingsChanged", handleSettingsChanged);
+    };
+  }, [view, sortBy]);
 
   useEffect(() => {
-    if (bookId && bookId !== state.selectedBookId) {
-      const bookExists = state.books.some((book) => book.id === bookId);
+    const fetchData = async () => {
+      try {
+        if (state.notes.length === 0) {
+          setIsLoading(true);
+          const { notes, books } = await NotesService.getData();
+          dispatch({ type: "LOAD_DATA", payload: { notes, books } });
+          setIsLoading(false);
+        }
 
-      if (bookExists) {
-        dispatch({ type: "SELECT_BOOK", payload: { id: bookId } });
-      } else if (state.books.length > 0) {
-        navigate("/");
+        if (bookId) {
+          dispatch({ type: "SELECT_BOOK", payload: { id: bookId } });
+        }
+      } catch (error) {
+        console.error("Error al cargar datos:", error);
+        setIsLoading(false);
       }
-    }
-  }, [bookId, state.books, dispatch, navigate, state.selectedBookId]);
+    };
+
+    fetchData();
+  }, [dispatch, bookId, state.notes.length]);
 
   useEffect(() => {
     if (showCreateForm && newNoteRef.current) {
@@ -102,99 +265,65 @@ export default function NotesPage() {
     }
   }, [showCreateForm]);
 
-  useEffect(() => {
-    let isMounted = true;
-
-    const loadNotes = async () => {
-      if (state.notes.length === 0) {
-        setIsLoading(true);
-        try {
-          const { notes } = await NotesService.getData();
-          if (isMounted) {
-            dispatch({
-              type: "LOAD_DATA",
-              payload: { books: state.books, notes },
-            });
-          }
-        } catch (error) {
-          console.error("Error al cargar las notas:", error);
-        } finally {
-          if (isMounted) {
-            setIsLoading(false);
-          }
-        }
-      } else {
-        setIsLoading(false);
-      }
-    };
-
-    loadNotes();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [dispatch, state.notes.length, state.books]);
-
-  useEffect(() => {
-    if (showCreateForm && createSectionRef.current) {
-      createSectionRef.current.scrollIntoView({
-        behavior: "smooth",
-        block: "start",
-      });
-    }
-  }, [showCreateForm]);
-
-  const filteredAndSortedNotes = useMemo(() => {
-    return state.notes
-      .filter((note) => {
-        if (state.selectedBookId) {
-          return (
-            note.bookId === state.selectedBookId &&
-            note.content.toLowerCase().includes(searchTerm.toLowerCase())
-          );
-        }
-        return note.content.toLowerCase().includes(searchTerm.toLowerCase());
-      })
-      .sort((a, b) => {
-        if (sortBy === "newest") {
-          return b.createdAt - a.createdAt;
-        } else if (sortBy === "oldest") {
-          return a.createdAt - b.createdAt;
-        } else {
-          return b.updatedAt - a.updatedAt;
-        }
-      });
-  }, [state.notes, state.selectedBookId, searchTerm, sortBy]);
-
-  const handleAddNote = async () => {
-    if (newNoteContent.trim() && !isCreating) {
-      setIsCreating(true);
-      try {
-        const bookId =
-          state.selectedBookId ||
-          (state.books.length > 0 ? state.books[0].id : "default");
-
-        const newNote = await NotesService.addNote({
-          content: newNoteContent,
-          bookId,
-        });
-
-        dispatch({
-          type: "ADD_NOTE",
-          payload: { note: newNote },
-        });
-
-        dispatch({ type: "SELECT_NOTE", payload: { id: newNote.id } });
-        navigate(`/note/${newNote.id}`);
-      } catch (error) {
-        console.error("Error al crear la nota:", error);
-        setIsCreating(false);
-      }
-    }
-  };
-
   const handleCreateNewNote = () => {
     setShowCreateForm(true);
+    setNewNoteContent("");
+
+    setTimeout(() => {
+      if (createSectionRef.current) {
+        window.scrollTo({
+          top: createSectionRef.current.offsetTop - 20,
+          behavior: "smooth",
+        });
+      }
+    }, 100);
+  };
+
+  const handleSubmitNote = async (e?: React.FormEvent) => {
+    e?.preventDefault();
+
+    if (!newNoteContent.trim() || isCreating) return;
+
+    setIsCreating(true);
+
+    try {
+      let targetBookId = null;
+      if (state.selectedBookId) {
+        targetBookId = state.selectedBookId;
+      } else if (state.books.length > 0) {
+        targetBookId = state.books[0].id;
+      }
+
+      if (!targetBookId) {
+        // Si no hay libros, primero creamos uno
+        const newBook = await NotesService.addBook({
+          name: t.books.defaultBook,
+          emoji: "📓",
+        });
+        dispatch({
+          type: "ADD_BOOK",
+          payload: { book: newBook },
+        });
+        targetBookId = newBook.id;
+      }
+
+      const newNote = await NotesService.addNote({
+        bookId: targetBookId,
+        content: newNoteContent,
+      });
+
+      dispatch({
+        type: "ADD_NOTE",
+        payload: { note: newNote },
+      });
+
+      setShowCreateForm(false);
+      setNewNoteContent("");
+    } catch (error) {
+      console.error("Error al crear nota:", error);
+    } finally {
+      setIsCreating(false);
+    }
   };
 
   const handleCancelCreate = () => {
@@ -202,17 +331,7 @@ export default function NotesPage() {
     setNewNoteContent("");
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
-      e.preventDefault();
-      handleAddNote();
-    } else if (e.key === "Escape") {
-      handleCancelCreate();
-    }
-  };
-
-  const handleSelectNote = (id: string) => {
-    dispatch({ type: "SELECT_NOTE", payload: { id } });
+  const handleViewNote = (id: string) => {
     navigate(`/note/${id}`);
   };
 
@@ -256,8 +375,37 @@ export default function NotesPage() {
     setSearchTerm("");
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
+      handleSubmitNote();
+    }
+    if (e.key === "Escape") {
+      handleCancelCreate();
+    }
+  };
+
+  // Filtrar y ordenar notas
+  const filteredAndSortedNotes = state.notes
+    .filter((note) => {
+      if (!state.selectedBookId) return true;
+      return note.bookId === state.selectedBookId;
+    })
+    .filter((note) => {
+      if (!searchTerm) return true;
+      return note.content.toLowerCase().includes(searchTerm.toLowerCase());
+    })
+    .sort((a, b) => {
+      if (sortBy === "newest") {
+        return b.createdAt - a.createdAt;
+      } else if (sortBy === "oldest") {
+        return a.createdAt - b.createdAt;
+      } else {
+        return b.updatedAt - a.updatedAt;
+      }
+    });
+
   if (isLoading) {
-    return <></>;
+    return <div className="loading-state">{t.notes.loading}</div>;
   }
 
   return (
@@ -314,32 +462,37 @@ export default function NotesPage() {
               ref={newNoteRef}
               value={newNoteContent}
               onChange={(e) => setNewNoteContent(e.target.value)}
-              onKeyDown={handleKeyDown}
               className="new-note-textarea"
-              placeholder={t.notes.noteTitle}
-              disabled={isCreating}
-            />
+              placeholder={t.notes.startWriting}
+              onKeyDown={handleKeyDown}
+            ></textarea>
             <div className="form-actions">
               <div className="note-form-meta">
-                <span className="char-count">
+                <div className="char-count">
                   {newNoteContent.length} {t.notes.characters}
-                </span>
-                <span className="keyboard-hint">{t.notes.ctrlEnterCreate}</span>
+                </div>
+                <div className="keyboard-hint">{t.notes.pressEnter}</div>
               </div>
               <div className="form-buttons">
                 <button
                   className="secondary-button"
                   onClick={handleCancelCreate}
-                  disabled={isCreating}
                 >
                   {t.common.cancel}
                 </button>
                 <button
                   className="primary-button"
-                  onClick={handleAddNote}
                   disabled={!newNoteContent.trim() || isCreating}
+                  onClick={() => handleSubmitNote()}
                 >
-                  {isCreating ? t.common.saving : t.common.create}
+                  {isCreating ? (
+                    <>
+                      <span className="button-icon loading"></span>
+                      {t.common.saving}
+                    </>
+                  ) : (
+                    t.notes.saveNote
+                  )}
                 </button>
               </div>
             </div>
@@ -352,17 +505,16 @@ export default function NotesPage() {
           <span className="search-icon">🔍</span>
           <input
             type="text"
+            className="search-input"
+            placeholder={t.notes.search}
             value={searchTerm}
             onChange={handleSearchChange}
-            placeholder={t.common.search}
-            className="search-input"
-            aria-label={t.common.search}
           />
           {searchTerm && (
             <button
               className="clear-search"
               onClick={clearSearch}
-              aria-label="Limpiar búsqueda"
+              aria-label={t.notes.clearSearch}
             >
               ×
             </button>
@@ -376,7 +528,7 @@ export default function NotesPage() {
               aria-label={t.settings.grid}
               title={t.settings.grid}
             >
-              <span className="view-icon">▣</span>
+              <span className="view-icon">◫</span>
             </button>
             <button
               className={`view-option ${view === "list" ? "active" : ""}`}
@@ -413,13 +565,24 @@ export default function NotesPage() {
             <NoteCard
               key={note.id}
               note={note}
-              onSelect={handleSelectNote}
               onDelete={handleDeleteNote}
+              onView={handleViewNote}
             />
           ))
         )}
       </div>
 
+      {!showCreateForm && filteredAndSortedNotes.length > 0 && (
+        <div className="floating-action">
+          <button
+            className="floating-create-button"
+            onClick={handleCreateNewNote}
+            aria-label={t.notes.newNote}
+          >
+            +
+          </button>
+        </div>
+      )}
     </div>
   );
 }
