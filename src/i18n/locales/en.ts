@@ -58,6 +58,7 @@ export default {
     saveChanges: "Save changes",
     confirmDeleteBook: "Are you sure? All notes in this book will be deleted.",
     notesInBook: "notes",
+    defaultBook: "General Book", // Añadido
   },
   notes: {
     newNote: "New note",
@@ -88,6 +89,19 @@ export default {
     noteNotFoundDesc:
       "The note you're looking for doesn't exist or has been deleted",
     backToNotes: "Back to my notes",
+    // Propiedades faltantes añadidas
+    noSearchResults: "No search results",
+    noSearchResultsFor: "No results found for",
+    startByCreating: "Start by creating a new note",
+    today: "Today",
+    yesterday: "Yesterday",
+    daysAgo: "days ago",
+    view: "View",
+    delete: "Delete",
+    confirmDelete: "Are you sure you want to delete this note?",
+    saveNote: "Save note",
+    search: "Search notes",
+    pressEnter: "Press Ctrl+Enter to save",
   },
   editor: {
     edit: "Edit",
