@@ -180,4 +180,17 @@ export default {
     greenTheme: "Tema verde",
     amberTheme: "Tema ámbar",
   },
+  shortcuts: {
+    createNote: "Crear nueva nota",
+    search: "Buscar notas",
+    gridView: "Vista de cuadrícula",
+    listView: "Vista de lista",
+    changeSorting: "Cambiar ordenación",
+    toggleHelp: "Mostrar/ocultar ayuda",
+    closeWindow: "Cerrar ventanas/formularios",
+    keyboardShortcuts: "Atajos de Teclado",
+    combination: "Combinación",
+    action: "Acción",
+    closeHelp: "Presiona Esc o Ctrl+H para cerrar",
+  },
 };

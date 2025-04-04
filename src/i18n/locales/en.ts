@@ -180,4 +180,17 @@ export default {
     editName: "Edit name",
     logoutDescription: "End your current session",
   },
+  shortcuts: {
+    createNote: "Create new note",
+    search: "Search notes",
+    gridView: "Grid view",
+    listView: "List view",
+    changeSorting: "Change sorting",
+    toggleHelp: "Show/hide help",
+    closeWindow: "Close windows/forms",
+    keyboardShortcuts: "Keyboard Shortcuts",
+    combination: "Combination",
+    action: "Action",
+    closeHelp: "Press Esc or Ctrl+H to close",
+  },
 };
