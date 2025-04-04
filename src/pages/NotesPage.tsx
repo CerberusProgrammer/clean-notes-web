@@ -405,7 +405,7 @@ export default function NotesPage() {
     });
 
   if (isLoading) {
-    return <div className="loading-state">{t.notes.loading}</div>;
+    return <></>;
   }
 
   return (

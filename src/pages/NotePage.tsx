@@ -482,11 +482,7 @@ export default function NotePage() {
   };
 
   if (loading) {
-    return (
-      <div className="loading-state">
-        <p>{t.notes.loadingNote}</p>
-      </div>
-    );
+    return <></>;
   }
 
   if (!selectedNote) {
