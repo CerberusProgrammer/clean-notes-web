@@ -58,11 +58,13 @@
 .book-expand-toggle {
   margin-right: var(--space-xs);
   color: var(--text-tertiary);
+  opacity: 0.6;
   display: flex;
   align-items: center;
   justify-content: center;
   width: 16px;
   height: 16px;
+  font-size: 0.6rem;
 }
 
 .book-info {

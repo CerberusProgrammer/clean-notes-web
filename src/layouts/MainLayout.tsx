@@ -335,10 +335,6 @@ export default function MainLayout({ children }: Props) {
 
         <div className="sidebar-nav">
           <div className="nav-section">
-            <div className="nav-section-title">
-              {sidebarOpen ? t.app.organize : ""}
-            </div>
-
             <Link
               to="/"
               className={`nav-item ${
@@ -426,13 +422,6 @@ export default function MainLayout({ children }: Props) {
                       {sidebarOpen && (
                         <div className="book-details">
                           <span className="book-name">{book.name}</span>
-                          <span className="book-note-count">
-                            {
-                              state.notes.filter((n) => n.bookId === book.id)
-                                .length
-                            }{" "}
-                            {t.books.notesInBook}
-                          </span>
                         </div>
                       )}
                     </div>
