@@ -5,6 +5,7 @@ export default {
     organize: "Organize and access all your ideas in one place",
   },
   auth: {
+    confirmLogout: "Are you sure you want to log out?",
     login: "Login",
     fillAllFields: "Please fill in all fields",
     register: "Register",
@@ -155,5 +156,12 @@ export default {
     redTheme: "Red theme",
     greenTheme: "Green theme",
     amberTheme: "Amber theme",
+    profile: "Profile",
+    email: "Email",
+    emailDescription: "Your login email address",
+    name: "Name",
+    nameDescription: "Your display name",
+    editName: "Edit name",
+    logoutDescription: "End your current session",
   },
 };

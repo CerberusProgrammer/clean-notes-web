@@ -6,6 +6,7 @@ export default {
   },
   auth: {
     login: "Iniciar sesión",
+    confirmLogout: "¿Estás seguro de que deseas cerrar sesión?",
     fillAllFields: "Por favor completa todos los campos",
     register: "Registrarse",
     loginAnonymous: "Continuar sin cuenta",
@@ -111,6 +112,13 @@ export default {
     lightMode: "Modo claro",
   },
   settings: {
+    profile: "Perfil",
+    email: "Correo Electrónico",
+    emailDescription: "Tu correo electrónico de inicio de sesión",
+    name: "Nombre",
+    nameDescription: "Tu nombre visible",
+    editName: "Editar nombre",
+    logoutDescription: "Cerrar tu sesión actual",
     title: "Configuración",
     appearance: "Apariencia",
     language: "Idioma",
