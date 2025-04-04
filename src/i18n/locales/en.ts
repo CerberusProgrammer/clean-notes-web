@@ -112,6 +112,8 @@ export default {
     lightMode: "Light mode",
   },
   settings: {
+    exportDescription: "Export all your notes as JSON file",
+    importDescription: "Import notes from a JSON file",
     title: "Settings",
     appearance: "Appearance",
     language: "Language",

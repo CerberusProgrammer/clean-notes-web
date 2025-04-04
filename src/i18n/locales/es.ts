@@ -112,6 +112,8 @@ export default {
     lightMode: "Modo claro",
   },
   settings: {
+    exportDescription: "Exporta todas tus notas como archivo JSON",
+    importDescription: "Importa notas desde un archivo JSON",
     profile: "Perfil",
     email: "Correo Electrónico",
     emailDescription: "Tu correo electrónico de inicio de sesión",
