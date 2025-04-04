@@ -15,6 +15,7 @@ export const userReducer = (
         isAuthenticated: true,
         user: action.payload.user,
         isAdmin: action.payload.isAdmin,
+        isCheckingAuth: false,
       };
     case "LOGIN_FAILURE":
       return {
@@ -22,14 +23,26 @@ export const userReducer = (
         isLoading: false,
         isError: true,
         error: action.payload,
+        isCheckingAuth: false,
       };
     case "UPDATE_USER":
       return {
         ...state,
         user: action.payload.user,
       };
+    case "AUTH_CHECK_COMPLETE":
+      return {
+        ...state,
+        isCheckingAuth: false,
+      };
     case "LOGOUT":
-      return { ...state, user: null, isAuthenticated: false, isAdmin: false };
+      return {
+        ...state,
+        user: null,
+        isAuthenticated: false,
+        isAdmin: false,
+        isCheckingAuth: false,
+      };
     default:
       return state;
   }

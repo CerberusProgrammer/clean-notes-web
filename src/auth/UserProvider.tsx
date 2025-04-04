@@ -12,43 +12,50 @@ export default function UserProvider({ children }: Props) {
   const [state, dispatch] = useReducer(userReducer, initialUserState);
 
   useEffect(() => {
-    const checkAuth = () => {
+    const checkAuth = async () => {
       try {
         dispatch({ type: "LOGIN_REQUEST" });
 
-        setTimeout(() => {
-          try {
-            const authData = UserServices.checkAuthentication();
+        // Verificar autenticación de forma asíncrona
+        const authData = UserServices.checkAuthentication();
 
-            if (authData.user) {
-              dispatch({
-                type: "LOGIN_SUCCESS",
-                payload: {
-                  user: authData.user,
-                  isAdmin: authData.isAdmin,
-                },
-              });
-            } else {
-              dispatch({ type: "LOGOUT" });
-            }
-          } catch (error) {
-            console.error("Error al verificar autenticación:", error);
-            dispatch({
-              type: "LOGIN_FAILURE",
-              payload: "Error al verificar autenticación",
-            });
-          }
-        }, 50);
+        if (authData.user) {
+          // Si hay un usuario autenticado, actualizar el estado
+          dispatch({
+            type: "LOGIN_SUCCESS",
+            payload: {
+              user: authData.user,
+              isAdmin: authData.isAdmin,
+            },
+          });
+        } else {
+          // No hay usuario autenticado
+          dispatch({ type: "LOGOUT" });
+        }
       } catch (error) {
-        console.error("Error en checkAuth:", error);
+        console.error("Error al verificar autenticación:", error);
         dispatch({
           type: "LOGIN_FAILURE",
-          payload: "Error crítico en la autenticación",
+          payload: "Error al verificar autenticación",
         });
+        // Asegurarse de que isCheckingAuth se ponga en false también en caso de error
+        dispatch({ type: "AUTH_CHECK_COMPLETE" });
       }
     };
 
+    // Ejecutar la verificación de autenticación inmediatamente
     checkAuth();
+
+    // Escuchar eventos de logout para actualizar el estado
+    const handleLogout = () => {
+      dispatch({ type: "LOGOUT" });
+    };
+
+    window.addEventListener("userLogout", handleLogout);
+
+    return () => {
+      window.removeEventListener("userLogout", handleLogout);
+    };
   }, []);
 
   return (

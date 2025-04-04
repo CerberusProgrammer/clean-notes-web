@@ -7,8 +7,8 @@ import "./NotesPage.css";
 import { EmptyState } from "./EmptyState";
 import { NoteCard } from "./NoteCard";
 import { getLocalStorageValue } from "../utils/note_utils";
-import { useKeyboardShortcuts } from "../provider/keyshortcuts_hooks";
 import { ShortcutsHelp } from "./shortcuts_help";
+import { useKeyboardShortcuts } from "../provider/keyshortcuts_hooks";
 
 export default function NotesPage() {
   const { bookId } = useParams<{ bookId?: string }>();
@@ -18,7 +18,7 @@ export default function NotesPage() {
   const [newNoteContent, setNewNoteContent] = useState("");
   const [isLoading, setIsLoading] = useState(state.notes.length === 0);
   const [isCreating, setIsCreating] = useState(false);
-  const [, setIsMobile] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
   // Referencias para permitir focus con atajos de teclado
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -38,6 +38,13 @@ export default function NotesPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [showCreateForm, setShowCreateForm] = useState(false);
 
+  // Efecto para verificar y actualizar el ID del libro seleccionado
+  useEffect(() => {
+    if (bookId && bookId !== state.selectedBookId) {
+      dispatch({ type: "SELECT_BOOK", payload: { id: bookId } });
+    }
+  }, [bookId, state.selectedBookId, dispatch]);
+
   // Detectar si es móvil
   useEffect(() => {
     const checkMobile = () => {
@@ -55,7 +62,7 @@ export default function NotesPage() {
   // Configurar los atajos de teclado
   const { helpVisible, setHelpVisible, shortcuts } = useKeyboardShortcuts([
     {
-      combination: { key: "e", ctrlKey: true, description: "Crear nueva nota" },
+      combination: { key: "n", ctrlKey: true, description: "Crear nueva nota" },
       action: handleCreateNewNote,
     },
     {
@@ -365,7 +372,7 @@ export default function NotesPage() {
           <button
             className="create-note-button"
             onClick={handleCreateNewNote}
-            aria-label={t.notes.newNote}
+            aria-label={`${t.notes.newNote} (Ctrl+N)`}
           >
             <span className="button-icon">+</span>
             <span>{t.notes.newNote}</span>
@@ -520,7 +527,21 @@ export default function NotesPage() {
       </div>
 
       {/* Botón flotante para crear nota nueva */}
-      {!showCreateForm && filteredAndSortedNotes.length > 0 && (
+      {isMobile && (
+        <div className="floating-action">
+          <button
+            className="floating-create-button"
+            onClick={handleCreateNewNote}
+            aria-label={`${t.notes.newNote} (Ctrl+N)`}
+            title={`${t.notes.newNote} (Ctrl+N)`}
+          >
+            +
+          </button>
+        </div>
+      )}
+
+      {/* Si no es móvil, mostrar botón flotante solo cuando no se muestra el formulario */}
+      {!isMobile && !showCreateForm && filteredAndSortedNotes.length > 0 && (
         <div className="floating-action">
           <button
             className="floating-create-button"

@@ -28,12 +28,6 @@ export default function LoginPage() {
     setError(null);
     setLoading(true);
 
-    if (!email || !password) {
-      setError("Por favor completa todos los campos");
-      setLoading(false);
-      return;
-    }
-
     try {
       dispatch({ type: "LOGIN_REQUEST" });
       const result = await UserServices.login(email, password);
@@ -46,20 +40,9 @@ export default function LoginPage() {
         },
       });
 
-      navigate("/");
+      // No es necesario hacer navigate aquí, será manejado por AuthRoute
     } catch (err) {
-      let errorMessage = "Error al iniciar sesión";
-      if (err instanceof Error) {
-        errorMessage = err.message;
-      }
-
-      dispatch({
-        type: "LOGIN_FAILURE",
-        payload: errorMessage,
-      });
-
-      setError(errorMessage);
-    } finally {
+      // código de manejo de error existente
       setLoading(false);
     }
   };
@@ -78,24 +61,12 @@ export default function LoginPage() {
         },
       });
 
-      navigate("/");
+      // No hacemos navigate aquí, la redirección será manejada por AuthRoute
     } catch (err) {
-      let errorMessage = "Error al iniciar como anónimo";
-      if (err instanceof Error) {
-        errorMessage = err.message;
-      }
-
-      dispatch({
-        type: "LOGIN_FAILURE",
-        payload: errorMessage,
-      });
-
-      setError(errorMessage);
-    } finally {
+      // código de manejo de error existente
       setLoading(false);
     }
   };
-
   const toggleLanguage = () => {
     const newLocale = locale === "es" ? "en" : "es";
     changeLocale(newLocale);

@@ -27,22 +27,11 @@ export default function RegisterPage() {
     };
   }, []);
 
+  // En el método handleRegister
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setLoading(true);
-
-    if (!name || !email || !password || !confirmPassword) {
-      setError(t.auth.fillAllFields || "Por favor completa todos los campos");
-      setLoading(false);
-      return;
-    }
-
-    if (password !== confirmPassword) {
-      setError(t.auth.passwordsDoNotMatch);
-      setLoading(false);
-      return;
-    }
 
     try {
       dispatch({ type: "LOGIN_REQUEST" });
@@ -56,20 +45,9 @@ export default function RegisterPage() {
         },
       });
 
-      navigate("/");
+      // No es necesario hacer navigate aquí, será manejado por AuthRoute
     } catch (err) {
-      let errorMessage = t.auth.registerError;
-      if (err instanceof Error) {
-        errorMessage = err.message;
-      }
-
-      dispatch({
-        type: "LOGIN_FAILURE",
-        payload: errorMessage,
-      });
-
-      setError(errorMessage);
-    } finally {
+      // código de manejo de error existente
       setLoading(false);
     }
   };

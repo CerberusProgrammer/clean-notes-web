@@ -7,6 +7,7 @@ export type UserState = {
   error: string | null;
   isAuthenticated: boolean;
   isAdmin: boolean;
+  isCheckingAuth: boolean; // Nuevo campo
 };
 
 export const initialUserState: UserState = {
@@ -16,4 +17,5 @@ export const initialUserState: UserState = {
   error: null,
   isAuthenticated: false,
   isAdmin: false,
+  isCheckingAuth: true, // Inicialmente estamos verificando
 };
