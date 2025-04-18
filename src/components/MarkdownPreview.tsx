@@ -1,31 +1,55 @@
 import { memo } from "react";
+import ReactMarkdown from "react-markdown";
+import rehypeHighlight from "rehype-highlight";
+import rehypeSanitize from "rehype-sanitize";
+import rehypeRaw from "rehype-raw";
+import "highlight.js/styles/github.css";
+import "highlight.js/styles/github-dark.css";
 
+// Usando un enfoque más sencillo para evitar problemas de tipos
 export const MarkdownPreview = memo(({ content }: { content: string }) => {
-  const renderSimpleMarkdown = (text: string) => {
-    if (!text) return "";
-
-    const escaped = text
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;")
-      .replace(/'/g, "&#039;");
-
-    let html = escaped
-      .replace(/#{1,6} (.+)/gm, "<strong>$1</strong>")
-      .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
-      .replace(/\*(.*?)\*/g, "<em>$1</em>")
-      .replace(/`(.*?)`/g, "<code>$1</code>")
-      .replace(/!\[(.*?)\]\((.*?)\)/g, "[Imagen]")
-      .replace(/\[(.*?)\]\((.*?)\)/g, "<a>$1</a>")
-      .replace(/^> (.*?)$/gm, "<blockquote>$1</blockquote>");
-
-    return html;
-  };
-
-  const html = renderSimpleMarkdown(content);
-
   return (
-    <div className="note-preview" dangerouslySetInnerHTML={{ __html: html }} />
+    <div className="markdown-preview">
+      <ReactMarkdown
+        rehypePlugins={[
+          rehypeRaw,
+          rehypeSanitize,
+          [rehypeHighlight, { detect: true, ignoreMissing: true }],
+        ]}
+        components={{
+          // Personalizar pre para mostrar el lenguaje del código
+          pre: (props) => {
+            const className = props.className || "";
+            const match = /language-(\w+)/.exec(className);
+            const lang = match ? match[1] : "text";
+
+            return <pre data-lang={lang} {...props} />;
+          },
+
+          // Personalizar enlaces para que se abran en una nueva pestaña
+          a: (props) => (
+            <a target="_blank" rel="noopener noreferrer" {...props} />
+          ),
+
+          // Hacer que las tablas sean responsivas
+          table: (props) => (
+            <div style={{ overflowX: "auto", width: "100%" }}>
+              <table {...props} />
+            </div>
+          ),
+
+          // Asegurar que las imágenes sean responsivas
+          img: (props) => (
+            <img
+              style={{ maxWidth: "100%", borderRadius: "8px" }}
+              alt={props.alt || "Image"}
+              {...props}
+            />
+          ),
+        }}
+      >
+        {content}
+      </ReactMarkdown>
+    </div>
   );
 });

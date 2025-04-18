@@ -219,6 +219,7 @@
   margin: 1.5rem 0 1rem;
   border-bottom: 1px solid var(--border);
   padding-bottom: 0.3rem;
+  color: var(--text-primary);
 }
 
 .markdown-preview h1::after {
@@ -230,22 +231,31 @@
   margin: 1.4rem 0 0.8rem;
   border-bottom: 1px solid var(--border);
   padding-bottom: 0.2rem;
+  color: var(--text-primary);
 }
 
 .markdown-preview h3 {
   font-size: 1.35rem;
   margin: 1.3rem 0 0.7rem;
+  color: var(--text-primary);
 }
 
 .markdown-preview h4 {
   font-size: 1.2rem;
   margin: 1.2rem 0 0.6rem;
+  color: var(--text-primary);
 }
 
 .markdown-preview h5,
 .markdown-preview h6 {
   font-size: 1.1rem;
   margin: 1.1rem 0 0.5rem;
+  color: var(--text-primary);
+}
+
+.markdown-preview p {
+  margin: 1rem 0;
+  line-height: 1.7;
 }
 
 .markdown-preview ul,
@@ -255,6 +265,11 @@
 }
 
 .markdown-preview li {
+  margin: 0.3rem 0;
+  padding-left: 0.3rem;
+}
+
+.markdown-preview li > p {
   margin: 0.3rem 0;
 }
 
@@ -268,7 +283,7 @@
 }
 
 .markdown-preview code {
-  font-family: "Courier New", Courier, monospace;
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
   background-color: rgba(0, 0, 0, 0.05);
   padding: 0.15rem 0.3rem;
   border-radius: var(--radius-sm);
@@ -281,6 +296,11 @@
   border-radius: var(--radius-md);
   overflow-x: auto;
   margin: 1rem 0;
+  position: relative;
+}
+
+.dark-theme .markdown-preview pre {
+  background-color: rgba(255, 255, 255, 0.05);
 }
 
 .markdown-preview pre code {
@@ -289,6 +309,8 @@
   border-radius: 0;
   display: block;
   color: var(--text-primary);
+  font-size: 0.9em;
+  line-height: 1.5;
 }
 
 .markdown-preview a {
@@ -310,6 +332,9 @@
   border-collapse: collapse;
   width: 100%;
   margin: 1rem 0;
+  overflow-x: auto;
+  display: block;
+  max-width: fit-content;
 }
 
 .markdown-preview table th,
@@ -324,10 +349,60 @@
   font-weight: 600;
 }
 
+.dark-theme .markdown-preview table th {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
 .markdown-preview hr {
   border: none;
   border-top: 1px solid var(--border);
   margin: 2rem 0;
+}
+
+/* Estilos del código resaltado con highlight.js */
+.hljs {
+  background: transparent !important;
+  padding: 0 !important;
+}
+
+.markdown-preview pre:before {
+  content: attr(data-lang);
+  position: absolute;
+  top: 0;
+  right: 0;
+  padding: 0.3rem 0.6rem;
+  font-size: 0.75rem;
+  color: var(--text-tertiary);
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 0 var(--radius-md) 0 var(--radius-md);
+  opacity: 0.7;
+}
+
+/* Estilos para la animación de transición entre modos */
+.markdown-preview,
+.textarea-container {
+  transition: opacity 0.2s ease;
+}
+
+/* Fix para listas anidadas */
+.markdown-preview ul ul,
+.markdown-preview ol ol,
+.markdown-preview ul ol,
+.markdown-preview ol ul {
+  margin: 0.3rem 0;
+}
+
+/* Estilos para tablas responsivas */
+@media (max-width: 768px) {
+  .markdown-preview table {
+    width: 100%;
+    font-size: 0.9em;
+  }
+
+  .markdown-preview table th,
+  .markdown-preview table td {
+    padding: 0.4rem 0.6rem;
+  }
 }
 
 /* Editor con syntax highlighting en línea */
@@ -692,4 +767,29 @@
   .note-stats {
     display: none;
   }
+}
+
+/* Estilos para highlight.js */
+.hljs {
+  background: rgba(245, 245, 245, 0.7) !important;
+  padding: 1rem !important;
+  border-radius: var(--radius-md) !important;
+}
+
+/* Tema oscuro para el visualizador de markdown */
+.dark-theme .markdown-preview blockquote {
+  background-color: rgba(255, 255, 255, 0.05);
+  border-left-color: var(--primary);
+}
+
+.dark-theme .markdown-preview code {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.dark-theme .markdown-preview pre {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.dark-theme .markdown-preview table th {
+  background-color: rgba(255, 255, 255, 0.05);
 }
