@@ -1,0 +1,205 @@
+.command-menu-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.6); /* Fondo más oscuro */
+  backdrop-filter: blur(8px); /* Más desenfoque */
+  -webkit-backdrop-filter: blur(8px); /* Para compatibilidad con Safari */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  animation: fadeIn 0.2s ease-in-out;
+}
+
+.command-menu-container {
+  width: 650px; /* Un poco más ancho */
+  max-width: 90%;
+  max-height: 80vh;
+  background: var(--bg-color);
+  border-radius: 16px; /* Bordes más redondeados */
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.4); /* Sombra más pronunciada */
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  animation: slideDown 0.2s ease-out;
+  border: 1px solid var(--border-color);
+  margin: 0 auto; /* Asegura centrado horizontal */
+  position: relative;
+}
+
+.command-menu-header {
+  display: flex;
+  align-items: center;
+  padding: 18px 20px; /* Padding más amplio */
+  border-bottom: 1px solid var(--border-color);
+  background-color: var(--bg-color-secondary);
+}
+
+.search-icon {
+  font-size: 20px; /* Ligeramente más grande */
+  margin-right: 12px;
+  color: var(--text-muted);
+}
+
+.command-menu-input {
+  flex-grow: 1;
+  border: none;
+  background: transparent;
+  font-size: 17px; /* Texto más grande */
+  font-weight: 500;
+  color: var(--text-color);
+  outline: none;
+  padding: 4px 0;
+}
+
+.command-menu-content {
+  overflow-y: auto;
+  max-height: calc(80vh - 130px);
+  padding: 12px 0;
+}
+
+.command-section {
+  padding-bottom: 16px;
+}
+
+.command-section-title {
+  padding: 10px 20px;
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.command-section-list {
+  margin: 0;
+  padding: 0;
+}
+
+.command-option {
+  display: flex;
+  align-items: center;
+  padding: 12px 20px;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.1s;
+  border-left: 3px solid transparent;
+}
+
+.command-option:hover {
+  background-color: var(--hover-color);
+}
+
+.command-option.selected {
+  background-color: var(--hover-color);
+  border-left: 3px solid var(--primary-color);
+  transform: translateX(2px); /* Efecto sutil al seleccionar */
+}
+
+.option-icon {
+  width: 42px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  margin-right: 14px;
+  background: var(--bg-color-tertiary);
+  border-radius: 10px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.option-content {
+  flex: 1;
+}
+
+.option-name {
+  font-weight: 600;
+  font-size: 16px;
+  margin-bottom: 6px;
+}
+
+.option-description {
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.no-results {
+  padding: 24px;
+  text-align: center;
+  color: var(--text-muted);
+  font-style: italic;
+  font-size: 15px;
+}
+
+.command-menu-footer {
+  padding: 12px 20px;
+  border-top: 1px solid var(--border-color);
+  text-align: center;
+  background-color: var(--bg-color-secondary);
+}
+
+.command-menu-tip {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.command-menu-tip span {
+  font-weight: bold;
+  padding: 3px 6px;
+  background-color: var(--bg-color-tertiary);
+  border-radius: 4px;
+  margin: 0 3px;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateY(-30px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Estilos para modo oscuro */
+body.dark-theme .command-menu-overlay {
+  background-color: rgba(0, 0, 0, 0.75);
+}
+
+body.dark-theme .command-menu-container {
+  background: var(--bg-color);
+  border: 1px solid var(--border-color);
+}
+
+/* Estilos para dispositivos móviles */
+@media (max-width: 768px) {
+  .command-menu-container {
+    width: 92%;
+    max-height: 75vh;
+    margin: auto 4%;
+  }
+
+  .command-menu-content {
+    max-height: calc(75vh - 130px);
+  }
+
+  .option-icon {
+    width: 36px;
+    height: 36px;
+    font-size: 20px;
+  }
+}

@@ -106,6 +106,7 @@ export default {
   editor: {
     edit: "Editar",
     preview: "Vista previa",
+    split: "Dividido",
     abandonChanges: "¿Abandonar cambios?",
     unsavedChanges: "Tienes cambios sin guardar. ¿Qué quieres hacer?",
     continueEditing: "Seguir editando",

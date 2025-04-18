@@ -106,6 +106,7 @@ export default {
   editor: {
     edit: "Edit",
     preview: "Preview",
+    split: "Split",
     abandonChanges: "Abandon changes?",
     unsavedChanges: "You have unsaved changes. What would you like to do?",
     continueEditing: "Continue editing",

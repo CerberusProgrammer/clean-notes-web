@@ -6,6 +6,7 @@ import { useTranslation } from "../i18n/locales/i18nHooks";
 import { ShortcutsHelp } from "./shortcuts_help";
 import { useKeyboardShortcuts } from "../provider/keyshortcuts_hooks";
 import { MarkdownPreview } from "../components/MarkdownPreview";
+import CommandMenu, { CommandOption } from "../components/CommandMenu";
 import "./NotePage.css";
 
 export default function NotePage() {
@@ -30,6 +31,9 @@ export default function NotePage() {
   );
   const [splitRatio, setSplitRatio] = useState(0.5); // Proporción para el modo split (0.5 = 50%)
   const [isDraggingSplitter, setIsDraggingSplitter] = useState(false);
+  const [commandMenuVisible, setCommandMenuVisible] = useState(false);
+  const [slashIndex, setSlashIndex] = useState<number | null>(null);
+  const commandMenuRef = useRef<HTMLDivElement>(null);
 
   // Referencias
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -225,6 +229,108 @@ export default function NotePage() {
       allowInInput: true,
     },
   ]);
+
+  // Lista de comandos disponibles
+  const commandOptions: CommandOption[] = [
+    {
+      id: "heading1",
+      name: "Encabezado 1",
+      description: "Encabezado de nivel 1",
+      icon: "H1",
+      action: () => applyFormat("h1"),
+    },
+    {
+      id: "heading2",
+      name: "Encabezado 2",
+      description: "Encabezado de nivel 2",
+      icon: "H2",
+      action: () => applyFormat("h2"),
+    },
+    {
+      id: "heading3",
+      name: "Encabezado 3",
+      description: "Encabezado de nivel 3",
+      icon: "H3",
+      action: () => applyFormat("h3"),
+    },
+    {
+      id: "bold",
+      name: "Negrita",
+      description: "Texto en negrita",
+      icon: "B",
+      action: () => applyFormat("bold"),
+    },
+    {
+      id: "italic",
+      name: "Cursiva",
+      description: "Texto en cursiva",
+      icon: "I",
+      action: () => applyFormat("italic"),
+    },
+    {
+      id: "code",
+      name: "Código",
+      description: "Texto formateado como código",
+      icon: "{ }",
+      action: () => applyFormat("code"),
+    },
+    {
+      id: "codeblock",
+      name: "Bloque de código",
+      description: "Bloque de código multilínea",
+      icon: "< >",
+      action: () => applyFormat("codeblock"),
+    },
+    {
+      id: "link",
+      name: "Enlace",
+      description: "Insertar un enlace",
+      icon: "🔗",
+      action: () => applyFormat("link"),
+    },
+    {
+      id: "image",
+      name: "Imagen",
+      description: "Insertar una imagen",
+      icon: "🖼️",
+      action: () => applyFormat("image"),
+    },
+    {
+      id: "quote",
+      name: "Cita",
+      description: "Bloque de cita",
+      icon: "❝",
+      action: () => applyFormat("quote"),
+    },
+    {
+      id: "bulletList",
+      name: "Lista con viñetas",
+      description: "Lista no ordenada",
+      icon: "•",
+      action: () => applyFormat("ul"),
+    },
+    {
+      id: "numberedList",
+      name: "Lista numerada",
+      description: "Lista ordenada",
+      icon: "1.",
+      action: () => applyFormat("ol"),
+    },
+    {
+      id: "horizontalRule",
+      name: "Línea horizontal",
+      description: "Separador horizontal",
+      icon: "—",
+      action: () => applyFormat("hr"),
+    },
+    {
+      id: "table",
+      name: "Tabla",
+      description: "Insertar una tabla",
+      icon: "▦",
+      action: () => applyFormat("table"),
+    },
+  ];
 
   // Función para sincronizar el scroll entre el editor y la vista previa
   const syncScroll = (
@@ -432,6 +538,35 @@ export default function NotePage() {
     };
   }, [hasChanges]);
 
+  // Handler para cerrar el menú de comandos
+  const handleCloseCommandMenu = () => {
+    setCommandMenuVisible(false);
+    setSlashIndex(null);
+  };
+
+  const handleSelectCommandOption = (option: CommandOption) => {
+    // Si hay un slash, reemplazamos la "/"
+    if (slashIndex !== null && textareaRef.current) {
+      const newContent =
+        content.substring(0, slashIndex) + content.substring(slashIndex + 1);
+      setContent(newContent);
+
+      setTimeout(() => {
+        // Restauramos el cursor a la posición donde estaba el slash
+        textareaRef.current!.selectionStart = slashIndex;
+        textareaRef.current!.selectionEnd = slashIndex;
+
+        // Ejecutar la acción del comando
+        option.action();
+      }, 0);
+    } else {
+      // Si por alguna razón no hay slash, solo ejecutamos la acción
+      option.action();
+    }
+
+    handleCloseCommandMenu();
+  };
+
   const handleContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newContent = e.target.value;
     setContent(newContent);
@@ -439,6 +574,31 @@ export default function NotePage() {
 
     if (selectedNote?.content !== newContent) {
       setSaveStatus("unsaved");
+    }
+
+    // Detectar si se escribió un "/"
+    const currentPosition = e.target.selectionStart;
+    const currentChar = newContent[currentPosition - 1];
+
+    if (currentChar === "/") {
+      // Verificar si es un slash al inicio de línea o después de un espacio
+      const prevChar =
+        currentPosition > 1 ? newContent[currentPosition - 2] : null;
+      if (prevChar === null || prevChar === " " || prevChar === "\n") {
+        setSlashIndex(currentPosition - 1);
+        // Mostrar el menú inmediatamente
+        setCommandMenuVisible(true);
+      }
+    } else if (commandMenuVisible) {
+      // Solo ocultamos el menú si:
+      // 1. Se eliminó el slash que lo activó, o
+      // 2. El cursor se movió antes de la posición del slash
+      if (
+        slashIndex !== null &&
+        (newContent[slashIndex] !== "/" || currentPosition < slashIndex)
+      ) {
+        handleCloseCommandMenu();
+      }
     }
 
     // Sincronizar scroll después de un breve retraso para permitir que el DOM se actualice
@@ -520,6 +680,15 @@ export default function NotePage() {
   }
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
+    // Si el menú de comandos está visible, las teclas especiales son manejadas por el componente CommandMenu
+    if (
+      commandMenuVisible &&
+      ["ArrowUp", "ArrowDown", "Enter", "Escape"].includes(e.key)
+    ) {
+      e.preventDefault();
+      return;
+    }
+
     if (e.key === "Tab") {
       e.preventDefault();
       const start = textareaRef.current!.selectionStart;
@@ -660,6 +829,19 @@ export default function NotePage() {
     }, 0);
   }
 
+  // Asegurar que el menú de comandos sea visible cuando está activado
+  useEffect(() => {
+    if (commandMenuVisible && commandMenuRef.current) {
+      // Forzar repintado para asegurar visibilidad
+      commandMenuRef.current.style.display = "none";
+      void commandMenuRef.current.offsetHeight; // Trigger reflow
+      commandMenuRef.current.style.display = "block";
+
+      // Asegurar que está en la parte superior del z-index
+      commandMenuRef.current.style.zIndex = "10000";
+    }
+  }, [commandMenuVisible]);
+
   if (loading) {
     return (
       <div className="note-page-container">
@@ -782,10 +964,14 @@ export default function NotePage() {
             </div>
           )}
 
-          {viewMode === "preview" && (
-            <div className="fade-transition">
-              <MarkdownPreview content={content} />
-            </div>
+          {/* Menú de comandos como modal (fuera de los contenedores para que aparezca centrado) */}
+          {commandMenuVisible && (
+            <CommandMenu
+              isVisible={commandMenuVisible}
+              options={commandOptions}
+              onSelectOption={handleSelectCommandOption}
+              onClose={handleCloseCommandMenu}
+            />
           )}
         </div>
 
