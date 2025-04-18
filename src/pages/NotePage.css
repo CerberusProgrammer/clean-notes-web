@@ -885,3 +885,152 @@
   transform: translateY(-5px);
   transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
 }
+
+/* Estilos para el modo split view */
+.split-view-container {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+.split-editor {
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+  transition: width 0.2s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+.split-editor .textarea-backdrop {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  transform: translateY(26px);
+  max-width: 100%;
+}
+
+.split-editor .note-textarea {
+  width: 90%; /* Reducir el ancho para crear espacio a los lados */
+  height: 100%;
+  min-height: 100%;
+  margin: 0 auto; /* Centrar el textarea */
+  padding: var(--space-3xl) var(--space-4xl) var(--space-4xl); /* Padding mucho mayor */
+  overflow-y: auto;
+  flex: 1;
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 1.1rem;
+  line-height: 2; /* Aumentar el interlineado */
+  color: var(--text-primary);
+  background-color: var(--surface);
+  /* Sombreado más notable */
+  box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.03);
+  border-radius: var(--radius-lg);
+  /* Bordes sutiles para delimitar claramente el área de escritura */
+  border: 1px solid rgba(0, 0, 0, 0.03);
+  /* Eliminando el resaltado y cambios de color al seleccionar */
+  user-select: text;
+  -webkit-user-select: text;
+  outline: none !important;
+  transition: none;
+}
+
+/* Eliminar cualquier cambio de color o resaltado en los estados */
+.split-editor .note-textarea:focus,
+.split-editor .note-textarea:active,
+.split-editor .note-textarea::selection {
+  outline: none !important;
+  box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.03) !important;
+  border: 1px solid rgba(0, 0, 0, 0.03) !important;
+  background-color: var(--surface) !important;
+  color: var(--text-primary) !important;
+}
+
+/* Anular resaltado de texto en el textarea */
+.split-editor .note-textarea::selection {
+  background-color: rgba(0, 0, 0, 0.1) !important;
+}
+
+.dark-theme .split-editor .note-textarea::selection {
+  background-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Asegurar que no haya cambios visuales cuando se enfoca o selecciona */
+.split-editor .note-textarea:hover {
+  background-color: var(--surface) !important;
+  border-color: rgba(0, 0, 0, 0.03) !important;
+}
+
+.split-preview {
+  height: 100%;
+  overflow: hidden;
+  transition: width 0.2s ease;
+}
+
+.preview-wrapper {
+  height: 100%;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.1) transparent;
+  padding: 0;
+}
+
+/* Ajustar el margen inferior para evitar que el contenido quede oculto por el footer */
+.split-editor .note-textarea,
+.preview-wrapper .markdown-preview {
+  padding-bottom: 120px; /* Espacio adicional para evitar que el footer tape el contenido */
+}
+
+/* Estilos para el divisor arrastrable */
+.splitter {
+  position: absolute;
+  top: 0;
+  width: 6px;
+  height: 100%;
+  background-color: transparent;
+  cursor: col-resize;
+  z-index: 10;
+  transition: background-color 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: translateX(-3px);
+}
+
+.splitter:hover,
+.splitter:active {
+  background-color: var(--primary-light);
+}
+
+.splitter-handle {
+  width: 2px;
+  height: 40px;
+  background-color: var(--border);
+  border-radius: 1px;
+  transition: background-color 0.2s ease, height 0.2s ease;
+}
+
+.splitter:hover .splitter-handle,
+.splitter:active .splitter-handle {
+  background-color: var(--primary);
+  height: 60px;
+}
+
+/* Modo oscuro para el divisor */
+.dark-theme .splitter:hover,
+.dark-theme .splitter:active {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.dark-theme .splitter-handle {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.dark-theme .splitter:hover .splitter-handle,
+.dark-theme .splitter:active .splitter-handle {
+  background-color: var(--primary);
+}

@@ -25,8 +25,17 @@ export default function NotePage() {
   const [showConfirmExit, setShowConfirmExit] = useState(false);
   const [showMarkdownHelp, setShowMarkdownHelp] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
-  const [viewMode, setViewMode] = useState<"edit" | "preview">("edit");
+  const [viewMode, setViewMode] = useState<"edit" | "preview" | "split">(
+    "edit"
+  );
+  const [splitRatio, setSplitRatio] = useState(0.5); // Proporción para el modo split (0.5 = 50%)
+  const [isDraggingSplitter, setIsDraggingSplitter] = useState(false);
+
+  // Referencias
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const previewRef = useRef<HTMLDivElement>(null);
+  const editorContainerRef = useRef<HTMLDivElement>(null);
+  const splitterRef = useRef<HTMLDivElement>(null);
 
   const { helpVisible, setHelpVisible, shortcuts } = useKeyboardShortcuts([
     {
@@ -184,7 +193,12 @@ export default function NotePage() {
         ctrlKey: true,
         description: t.shortcuts.togglePreview,
       },
-      action: () => setViewMode(viewMode === "edit" ? "preview" : "edit"),
+      action: () => {
+        // Ciclar entre los tres modos: edit -> split -> preview -> edit
+        if (viewMode === "edit") setViewMode("split");
+        else if (viewMode === "split") setViewMode("preview");
+        else setViewMode("edit");
+      },
       allowInInput: true,
     },
     {
@@ -211,6 +225,108 @@ export default function NotePage() {
       allowInInput: true,
     },
   ]);
+
+  // Función para sincronizar el scroll entre el editor y la vista previa
+  const syncScroll = (
+    sourceElement: HTMLElement,
+    targetElement: HTMLElement | null
+  ) => {
+    if (!targetElement) return;
+
+    const sourceScrollRatio =
+      sourceElement.scrollTop /
+      (sourceElement.scrollHeight - sourceElement.clientHeight);
+    const targetScrollMax =
+      targetElement.scrollHeight - targetElement.clientHeight;
+
+    // Usar requestAnimationFrame para optimizar la sincronización visual
+    window.requestAnimationFrame(() => {
+      targetElement.scrollTop = targetScrollMax * sourceScrollRatio;
+    });
+  };
+
+  // Manejador para el inicio del arrastre del divisor
+  const handleSplitterMouseDown = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsDraggingSplitter(true);
+  };
+
+  // Manejador para el movimiento del ratón durante el arrastre
+  useEffect(() => {
+    if (!isDraggingSplitter) return;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!editorContainerRef.current) return;
+
+      const containerRect = editorContainerRef.current.getBoundingClientRect();
+      const newRatio = (e.clientX - containerRect.left) / containerRect.width;
+
+      // Limitar el ratio entre 0.2 y 0.8 para evitar dimensiones demasiado pequeñas
+      const clampedRatio = Math.max(0.2, Math.min(0.8, newRatio));
+      setSplitRatio(clampedRatio);
+    };
+
+    const handleMouseUp = () => {
+      setIsDraggingSplitter(false);
+    };
+
+    document.addEventListener("mousemove", handleMouseMove);
+    document.addEventListener("mouseup", handleMouseUp);
+
+    return () => {
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, [isDraggingSplitter]);
+
+  // Manejador para sincronizar el scroll del editor a la vista previa
+  useEffect(() => {
+    if (viewMode !== "split") return;
+
+    // Función mejorada para sincronizar el scroll
+    const handleEditorScroll = () => {
+      if (textareaRef.current && previewRef.current) {
+        syncScroll(textareaRef.current, previewRef.current);
+      }
+    };
+
+    // Función para ajustar el tamaño del textarea en modo split
+    const adjustTextareaSize = () => {
+      if (textareaRef.current) {
+        // Esto asegura que el textarea tenga al menos la altura total de su contenedor
+        textareaRef.current.style.minHeight = "100%";
+
+        // Aseguramos que el contenido sea completamente visible
+        setTimeout(() => {
+          if (textareaRef.current) {
+            const currentHeight = textareaRef.current.offsetHeight;
+            const scrollHeight = textareaRef.current.scrollHeight;
+
+            // Si el contenido es más alto que el área visible, ajustamos
+            if (scrollHeight > currentHeight) {
+              textareaRef.current.style.height = "auto";
+            }
+          }
+        }, 10);
+      }
+    };
+
+    // Aplicar el ajuste de tamaño inicial
+    adjustTextareaSize();
+
+    // Registrar el evento de scroll
+    const textarea = textareaRef.current;
+    if (textarea) {
+      textarea.addEventListener("scroll", handleEditorScroll);
+    }
+
+    // Limpiar al desmontar
+    return () => {
+      if (textarea) {
+        textarea.removeEventListener("scroll", handleEditorScroll);
+      }
+    };
+  }, [viewMode, content]);
 
   function handleEscape() {
     if (showMarkdownHelp) {
@@ -323,6 +439,15 @@ export default function NotePage() {
 
     if (selectedNote?.content !== newContent) {
       setSaveStatus("unsaved");
+    }
+
+    // Sincronizar scroll después de un breve retraso para permitir que el DOM se actualice
+    if (viewMode === "split") {
+      setTimeout(() => {
+        if (textareaRef.current && previewRef.current) {
+          syncScroll(textareaRef.current, previewRef.current);
+        }
+      }, 10);
     }
   };
 
@@ -567,6 +692,13 @@ export default function NotePage() {
                 {t.editor.edit}
               </button>
               <button
+                className={viewMode === "split" ? "active" : ""}
+                onClick={() => setViewMode("split")}
+                title={`${t.editor.split || "Split"} (Ctrl+P)`}
+              >
+                {t.editor.split || "Split"}
+              </button>
+              <button
                 className={viewMode === "preview" ? "active" : ""}
                 onClick={() => setViewMode("preview")}
                 title={`${t.editor.preview} (Ctrl+P)`}
@@ -593,8 +725,8 @@ export default function NotePage() {
           </div>
         </div>
 
-        <div className="note-editor">
-          {viewMode === "edit" ? (
+        <div className="note-editor" ref={editorContainerRef}>
+          {viewMode === "edit" && (
             <div className="textarea-container fade-transition">
               <div className="textarea-backdrop"></div>
               <textarea
@@ -607,7 +739,50 @@ export default function NotePage() {
                 spellCheck={false}
               ></textarea>
             </div>
-          ) : (
+          )}
+
+          {viewMode === "split" && (
+            <div className="split-view-container">
+              <div
+                className="split-editor"
+                style={{ width: `${splitRatio * 100}%` }}
+              >
+                <div className="textarea-backdrop"></div>
+                <textarea
+                  ref={textareaRef}
+                  value={content}
+                  onChange={handleContentChange}
+                  onKeyDown={handleKeyDown}
+                  className="note-textarea"
+                  placeholder={t.notes.startWriting}
+                  spellCheck={false}
+                ></textarea>
+              </div>
+
+              <div
+                className="splitter"
+                ref={splitterRef}
+                onMouseDown={handleSplitterMouseDown}
+                style={{
+                  cursor: isDraggingSplitter ? "col-resize" : "col-resize",
+                  left: `${splitRatio * 100}%`,
+                }}
+              >
+                <div className="splitter-handle"></div>
+              </div>
+
+              <div
+                className="split-preview"
+                style={{ width: `${(1 - splitRatio) * 100}%` }}
+              >
+                <div ref={previewRef} className="preview-wrapper">
+                  <MarkdownPreview content={content} />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {viewMode === "preview" && (
             <div className="fade-transition">
               <MarkdownPreview content={content} />
             </div>
