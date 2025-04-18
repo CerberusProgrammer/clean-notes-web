@@ -4,61 +4,90 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.6); /* Fondo más oscuro */
-  backdrop-filter: blur(8px); /* Más desenfoque */
-  -webkit-backdrop-filter: blur(8px); /* Para compatibilidad con Safari */
+  background-color: rgba(
+    0,
+    0,
+    0,
+    0.45
+  ); /* Fondo menos transparente pero elegante */
+  backdrop-filter: blur(10px); /* Mayor efecto blur */
+  -webkit-backdrop-filter: blur(10px); /* Para compatibilidad con Safari */
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 1000;
-  animation: fadeIn 0.2s ease-in-out;
+  animation: fadeIn 0.25s ease-in-out;
 }
 
 .command-menu-container {
-  width: 650px; /* Un poco más ancho */
+  width: 650px;
   max-width: 90%;
   max-height: 80vh;
-  background: var(--bg-color);
-  border-radius: 16px; /* Bordes más redondeados */
-  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.4); /* Sombra más pronunciada */
+  background: var(--surface); /* Usar variable del tema actual */
+  border-radius: 18px; /* Aún más redondeado */
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.25), 0 5px 15px rgba(0, 0, 0, 0.15); /* Sombra mejorada */
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  animation: slideDown 0.2s ease-out;
-  border: 1px solid var(--border-color);
-  margin: 0 auto; /* Asegura centrado horizontal */
+  animation: slideDown 0.25s cubic-bezier(0.22, 1, 0.36, 1); /* Transición más suave */
+  border: 1px solid var(--border);
+  margin: 0 auto;
   position: relative;
 }
 
 .command-menu-header {
   display: flex;
   align-items: center;
-  padding: 18px 20px; /* Padding más amplio */
-  border-bottom: 1px solid var(--border-color);
-  background-color: var(--bg-color-secondary);
+  padding: 18px 20px;
+  border-bottom: 1px solid var(--border);
+  background-color: var(--surface); /* Usar color del tema actual */
 }
 
 .search-icon {
-  font-size: 20px; /* Ligeramente más grande */
-  margin-right: 12px;
-  color: var(--text-muted);
+  font-size: 20px;
+  margin-right: 14px;
+  color: var(--primary); /* Color primario para destacar */
 }
 
 .command-menu-input {
   flex-grow: 1;
   border: none;
   background: transparent;
-  font-size: 17px; /* Texto más grande */
+  font-size: 17px;
   font-weight: 500;
-  color: var(--text-color);
+  color: var(--text-primary); /* Variable del tema */
   outline: none;
   padding: 4px 0;
+  caret-color: var(--primary); /* Cursor del color primario */
 }
 
 .command-menu-content {
   overflow-y: auto;
   max-height: calc(80vh - 130px);
   padding: 12px 0;
+
+  /* Scrollbar personalizado */
+  scrollbar-width: thin; /* Para Firefox */
+  scrollbar-color: var(--primary-light) transparent; /* Para Firefox */
+}
+
+/* Scrollbar personalizado para Chrome, Edge y Safari */
+.command-menu-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.command-menu-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.command-menu-content::-webkit-scrollbar-thumb {
+  background-color: var(--primary-light);
+  border-radius: 6px;
+  transition: background-color 0.3s;
+}
+
+.command-menu-content::-webkit-scrollbar-thumb:hover {
+  background-color: var(--primary);
 }
 
 .command-section {
@@ -68,11 +97,11 @@
 .command-section-title {
   padding: 10px 20px;
   margin: 0;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
-  color: var(--text-muted);
+  color: var(--text-tertiary); /* Color del tema */
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.7px;
 }
 
 .command-section-list {
@@ -85,17 +114,17 @@
   align-items: center;
   padding: 12px 20px;
   cursor: pointer;
-  transition: background-color 0.2s, transform 0.1s;
+  transition: all 0.2s cubic-bezier(0.22, 1, 0.36, 1); /* Transición más sofisticada */
   border-left: 3px solid transparent;
 }
 
 .command-option:hover {
-  background-color: var(--hover-color);
+  background-color: var(--divider); /* Color del tema */
 }
 
 .command-option.selected {
-  background-color: var(--hover-color);
-  border-left: 3px solid var(--primary-color);
+  background-color: var(--primary-light); /* Color primario ligero del tema */
+  border-left: 3px solid var(--primary); /* Color primario del tema */
   transform: translateX(2px); /* Efecto sutil al seleccionar */
 }
 
@@ -107,9 +136,16 @@
   justify-content: center;
   font-size: 22px;
   margin-right: 14px;
-  background: var(--bg-color-tertiary);
-  border-radius: 10px;
+  background: var(--primary-light); /* Usar color del tema */
+  color: var(--primary); /* Color del icono */
+  border-radius: 12px;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease, background-color 0.2s ease;
+}
+
+.command-option.selected .option-icon {
+  transform: scale(1.05); /* Ligeramente más grande cuando está seleccionado */
+  background-color: var(--primary-light); /* Color del tema */
 }
 
 .option-content {
@@ -120,37 +156,39 @@
   font-weight: 600;
   font-size: 16px;
   margin-bottom: 6px;
+  color: var(--text-primary); /* Color del tema */
 }
 
 .option-description {
   font-size: 14px;
-  color: var(--text-muted);
+  color: var(--text-secondary); /* Color del tema */
 }
 
 .no-results {
   padding: 24px;
   text-align: center;
-  color: var(--text-muted);
+  color: var(--text-tertiary); /* Color del tema */
   font-style: italic;
   font-size: 15px;
 }
 
 .command-menu-footer {
   padding: 12px 20px;
-  border-top: 1px solid var(--border-color);
+  border-top: 1px solid var(--border);
   text-align: center;
-  background-color: var(--bg-color-secondary);
+  background-color: var(--surface); /* Usar color del tema */
 }
 
 .command-menu-tip {
   font-size: 13px;
-  color: var(--text-muted);
+  color: var(--text-tertiary); /* Color del tema */
 }
 
 .command-menu-tip span {
   font-weight: bold;
   padding: 3px 6px;
-  background-color: var(--bg-color-tertiary);
+  background-color: var(--primary-light); /* Usar color primario ligero */
+  color: var(--primary-dark); /* Color de texto oscuro primario */
   border-radius: 4px;
   margin: 0 3px;
 }
@@ -177,12 +215,31 @@
 
 /* Estilos para modo oscuro */
 body.dark-theme .command-menu-overlay {
-  background-color: rgba(0, 0, 0, 0.75);
+  background-color: rgba(0, 0, 0, 0.65);
 }
 
 body.dark-theme .command-menu-container {
-  background: var(--bg-color);
-  border: 1px solid var(--border-color);
+  background: var(--surface);
+  border-color: var(--border);
+}
+
+body.dark-theme .command-option:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+body.dark-theme .command-option.selected {
+  background-color: var(--primary-dark);
+  border-left-color: var(--primary);
+}
+
+body.dark-theme .option-icon {
+  background-color: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+}
+
+body.dark-theme .command-menu-tip span {
+  background-color: var(--primary-dark);
+  color: var(--primary-light);
 }
 
 /* Estilos para dispositivos móviles */

@@ -57,7 +57,7 @@ const CommandMenu: React.FC<CommandMenuProps> = ({
     }
   }, [isVisible]);
 
-  // Manejo de eventos de teclado
+  // Manejo mejorado de eventos de teclado
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (!isVisible) return;
@@ -86,9 +86,10 @@ const CommandMenu: React.FC<CommandMenuProps> = ({
       }
     };
 
-    document.addEventListener("keydown", handleKeyDown);
+    // Usar 'keydown' para capturar la tecla ESC antes que otros elementos
+    document.addEventListener("keydown", handleKeyDown, { capture: true });
     return () => {
-      document.removeEventListener("keydown", handleKeyDown);
+      document.removeEventListener("keydown", handleKeyDown, { capture: true });
     };
   }, [isVisible, filteredOptions, selectedIndex, onSelectOption, onClose]);
 

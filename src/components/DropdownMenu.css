@@ -12,12 +12,39 @@
   position: absolute;
   min-width: 180px;
   background-color: var(--surface);
+  backdrop-filter: blur(10px); /* Efecto blur consistente con CommandMenu */
+  -webkit-backdrop-filter: blur(10px);
   border-radius: var(--radius-md);
-  box-shadow: var(--shadow-lg);
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15), 0 5px 15px rgba(0, 0, 0, 0.08); /* Sombra mejorada */
   border: 1px solid var(--border);
   overflow: hidden;
   z-index: 100;
-  animation: fadeIn 0.2s ease;
+  animation: fadeIn 0.25s ease;
+  max-height: 80vh; /* Altura máxima */
+  overflow-y: auto; /* Permitir scroll */
+
+  /* Scrollbar personalizado */
+  scrollbar-width: thin; /* Para Firefox */
+  scrollbar-color: var(--primary-light) transparent; /* Para Firefox */
+}
+
+/* Scrollbar personalizado para Chrome, Edge y Safari */
+.dropdown-menu::-webkit-scrollbar {
+  width: 6px;
+}
+
+.dropdown-menu::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.dropdown-menu::-webkit-scrollbar-thumb {
+  background-color: var(--primary-light);
+  border-radius: 6px;
+  transition: background-color 0.3s;
+}
+
+.dropdown-menu::-webkit-scrollbar-thumb:hover {
+  background-color: var(--primary);
 }
 
 .dropdown-menu.bottom-right {
@@ -51,18 +78,18 @@
   cursor: pointer;
   color: var(--text-primary);
   font-size: 0.9rem;
-  transition: background-color 0.2s ease;
+  transition: all 0.2s cubic-bezier(0.22, 1, 0.36, 1); /* Transición mejorada */
+  border-left: 3px solid transparent; /* Preparación para el efecto de selección */
 }
 
 .dropdown-item:hover {
-  background-color: rgba(0, 0, 0, 0.03);
+  background-color: var(--divider); /* Color del tema */
   color: var(--primary);
-  transform: none;
-  box-shadow: none;
+  transform: translateX(2px); /* Efecto sutil al hover */
 }
 
 .dark-theme .dropdown-item:hover {
-  background-color: rgba(255, 255, 255, 0.05);
+  background-color: rgba(255, 255, 255, 0.07); /* Más visible en modo oscuro */
 }
 
 .dropdown-item.danger {
@@ -70,15 +97,37 @@
 }
 
 .dropdown-item.danger:hover {
-  background-color: rgba(239, 68, 68, 0.05);
+  background-color: rgba(239, 68, 68, 0.1); /* Rojo más visible */
 }
 
 .dropdown-item-icon {
   margin-right: var(--space-sm);
   font-size: 1rem;
+  color: var(--primary); /* Color del tema */
+}
+
+.dropdown-item.danger .dropdown-item-icon {
+  color: var(--danger);
 }
 
 .dropdown-item:disabled {
   opacity: 0.4;
   cursor: not-allowed;
+}
+
+/* Quitar el efecto de focus predeterminado */
+.dropdown-item:focus {
+  outline: none;
+}
+
+/* Animación de fadeIn consistente con CommandMenu */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
