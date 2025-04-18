@@ -435,7 +435,9 @@ export default function NotePage() {
   }, [viewMode, content]);
 
   function handleEscape() {
-    if (showMarkdownHelp) {
+    if (commandMenuVisible) {
+      handleCloseCommandMenu();
+    } else if (showMarkdownHelp) {
       setShowMarkdownHelp(false);
     } else if (showConfirmExit) {
       setShowConfirmExit(false);
@@ -545,22 +547,27 @@ export default function NotePage() {
   };
 
   const handleSelectCommandOption = (option: CommandOption) => {
-    // Si hay un slash, reemplazamos la "/"
+    // Si hay un slash, eliminamos el slash antes de ejecutar la acción del comando
     if (slashIndex !== null && textareaRef.current) {
+      // Obtenemos el contenido actual y eliminamos el caracter "/"
       const newContent =
         content.substring(0, slashIndex) + content.substring(slashIndex + 1);
+
+      // Actualizamos el contenido sin el caracter "/"
       setContent(newContent);
 
+      // Actualizamos la posición del cursor a la posición donde estaba el "/"
       setTimeout(() => {
-        // Restauramos el cursor a la posición donde estaba el slash
-        textareaRef.current!.selectionStart = slashIndex;
-        textareaRef.current!.selectionEnd = slashIndex;
+        if (textareaRef.current) {
+          textareaRef.current.selectionStart = slashIndex;
+          textareaRef.current.selectionEnd = slashIndex;
 
-        // Ejecutar la acción del comando
-        option.action();
+          // Ahora ejecutamos la acción del comando
+          option.action();
+        }
       }, 0);
     } else {
-      // Si por alguna razón no hay slash, solo ejecutamos la acción
+      // Si no hay slash, simplemente ejecutamos la acción
       option.action();
     }
 

@@ -81,13 +81,28 @@ const CommandMenu: React.FC<CommandMenuProps> = ({
           break;
         case "Escape":
           e.preventDefault();
+          // Agregamos un console.log para depurar
+          console.log("ESC pressed in CommandMenu");
           onClose();
           break;
       }
     };
 
-    // Usar 'keydown' para capturar la tecla ESC antes que otros elementos
+    // Agregar el event listener con captura y prioridad alta
     document.addEventListener("keydown", handleKeyDown, { capture: true });
+
+    // Agregar un manejador directamente al menú para mayor seguridad
+    const menuElement = menuRef.current;
+    if (menuElement) {
+      menuElement.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") {
+          e.preventDefault();
+          e.stopPropagation();
+          onClose();
+        }
+      });
+    }
+
     return () => {
       document.removeEventListener("keydown", handleKeyDown, { capture: true });
     };
