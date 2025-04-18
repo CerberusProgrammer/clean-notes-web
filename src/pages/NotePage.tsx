@@ -595,7 +595,7 @@ export default function NotePage() {
 
         <div className="note-editor">
           {viewMode === "edit" ? (
-            <div className="textarea-container">
+            <div className="textarea-container fade-transition">
               <div className="textarea-backdrop"></div>
               <textarea
                 ref={textareaRef}
@@ -604,10 +604,13 @@ export default function NotePage() {
                 onKeyDown={handleKeyDown}
                 className="note-textarea"
                 placeholder={t.notes.startWriting}
+                spellCheck={false}
               ></textarea>
             </div>
           ) : (
-            <MarkdownPreview content={content} />
+            <div className="fade-transition">
+              <MarkdownPreview content={content} />
+            </div>
           )}
         </div>
 

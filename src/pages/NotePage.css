@@ -171,6 +171,7 @@
   position: relative;
   background: var(--surface);
   padding-bottom: 60px; /* Espacio para evitar que el footer tape contenido */
+  isolation: isolate; /* Crea un nuevo contexto de apilamiento */
 }
 
 .note-textarea {
@@ -187,17 +188,77 @@
   border: none;
   padding: var(--space-xl) var(--space-xl) var(--space-2xl);
   resize: none;
-  outline: none;
-  box-shadow: none;
+  outline: none !important; /* Eliminar outline al enfocarse */
+  box-shadow: none !important; /* Eliminar cualquier sombra */
   -webkit-appearance: none;
   appearance: none;
   white-space: pre-wrap;
+  overflow: auto;
+  scrollbar-width: thin; /* Para Firefox */
+  scrollbar-color: rgba(0, 0, 0, 0.1) transparent; /* Para Firefox */
+  transition: background-color 0.3s ease;
+}
+
+/* Ocultar el scrollbar para Chrome, Safari y Opera */
+.note-textarea::-webkit-scrollbar {
+  width: 6px;
+}
+
+/* Track */
+.note-textarea::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Handle */
+.note-textarea::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.1);
+  border-radius: 6px;
+  transition: background-color 0.3s ease;
+}
+
+/* Handle on hover */
+.note-textarea::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(0, 0, 0, 0.15);
+}
+
+/* Para tema oscuro */
+.dark-theme .note-textarea {
+  scrollbar-color: rgba(255, 255, 255, 0.1) transparent; /* Para Firefox */
+}
+
+.dark-theme .note-textarea::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.dark-theme .note-textarea::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(255, 255, 255, 0.15);
 }
 
 .note-textarea:focus {
   outline: none;
   border: none;
   box-shadow: none;
+}
+
+/* Mejora el estilo del fondo */
+.textarea-backdrop {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 800px;
+  height: 100%;
+  max-width: 90%;
+  background-image: linear-gradient(var(--border) 1px, transparent 1px);
+  background-size: 100% 28px;
+  opacity: 0.02; /* Reducir opacidad para un aspecto más minimalista */
+  pointer-events: none;
+  z-index: -1; /* Colocar detrás del textarea */
+  transform: translateX(-50%) translateY(26px);
+}
+
+.dark-theme .textarea-backdrop {
+  opacity: 0.015;
 }
 
 .markdown-preview {
@@ -482,14 +543,14 @@
   max-width: 90%;
   background-image: linear-gradient(var(--border) 1px, transparent 1px);
   background-size: 100% 28px;
-  opacity: 0.03;
+  opacity: 0.02; /* Reducir opacidad para un aspecto más minimalista */
   pointer-events: none;
-  z-index: 1;
+  z-index: -1; /* Colocar detrás del textarea */
   transform: translateX(-50%) translateY(26px);
 }
 
 .dark-theme .textarea-backdrop {
-  opacity: 0.02;
+  opacity: 0.015;
 }
 
 .note-footer {
@@ -792,4 +853,35 @@
 
 .dark-theme .markdown-preview table th {
   background-color: rgba(255, 255, 255, 0.05);
+}
+
+/* Transición suave entre modos de edición y vista previa */
+.fade-transition {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+  width: 100%;
+  height: 100%;
+}
+
+.fade-transition-enter {
+  opacity: 0;
+  transform: translateY(5px);
+}
+
+.fade-transition-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+}
+
+.fade-transition-exit {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.fade-transition-exit-active {
+  opacity: 0;
+  transform: translateY(-5px);
+  transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
 }
