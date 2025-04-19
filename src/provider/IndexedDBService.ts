@@ -36,7 +36,7 @@ export class IndexedDBService {
   static async openDatabase(): Promise<IDBDatabase> {
     // Primero verificamos la versión actual
     const currentVersion = await this.getCurrentVersion();
-    
+
     return new Promise((resolve, reject) => {
       // Usamos la versión actual o DB_VERSION si es mayor
       const versionToUse = Math.max(currentVersion, DB_VERSION);
@@ -58,24 +58,34 @@ export class IndexedDBService {
         if (!db.objectStoreNames.contains(USER_STORE)) {
           db.createObjectStore(USER_STORE, { keyPath: "key" });
         }
-        
-        console.log(`Base de datos actualizada de la versión ${oldVersion} a la ${versionToUse}`);
+
+        console.log(
+          `Base de datos actualizada de la versión ${oldVersion} a la ${versionToUse}`
+        );
       };
 
       request.onsuccess = () => resolve(request.result);
-      
+
       request.onerror = () => {
         console.error("Error al abrir la base de datos:", request.error);
         reject(request.error);
       };
-      
+
       request.onblocked = () => {
-        console.warn("Apertura de base de datos bloqueada. Cerrando conexiones...");
+        console.warn(
+          "Apertura de base de datos bloqueada. Cerrando conexiones..."
+        );
         // Intentamos cerrar todas las conexiones existentes
         const deleteRequest = indexedDB.deleteDatabase(DB_NAME);
         deleteRequest.onsuccess = () => {
-          console.log("Base de datos eliminada correctamente. Inténtalo de nuevo.");
-          reject(new Error("Base de datos bloqueada. Por favor, recarga la aplicación."));
+          console.log(
+            "Base de datos eliminada correctamente. Inténtalo de nuevo."
+          );
+          reject(
+            new Error(
+              "Base de datos bloqueada. Por favor, recarga la aplicación."
+            )
+          );
         };
       };
     });
@@ -161,10 +171,10 @@ export class IndexedDBService {
       // Primero limpiamos los datos existentes
       const userId = this.getUserStorageKey();
       await this.clearUserData(userId);
-      
+
       // Luego abrimos una nueva conexión para guardar los datos
       const db = await this.openDatabase();
-      
+
       return new Promise((resolve, reject) => {
         const transaction = db.transaction(
           [BOOKS_STORE, NOTES_STORE],
@@ -172,10 +182,10 @@ export class IndexedDBService {
         );
         const booksStore = transaction.objectStore(BOOKS_STORE);
         const notesStore = transaction.objectStore(NOTES_STORE);
-        
+
         // Variable para rastrear si hay errores
         let hasError = false;
-        
+
         // Añadir prefijo de usuario a todas las entradas de libros
         for (const book of books) {
           const request = booksStore.put({ ...book, userId });
@@ -184,7 +194,7 @@ export class IndexedDBService {
             hasError = true;
           };
         }
-        
+
         // Añadir prefijo de usuario a todas las entradas de notas
         for (const note of notes) {
           const request = notesStore.put({ ...note, userId });
@@ -193,7 +203,7 @@ export class IndexedDBService {
             hasError = true;
           };
         }
-        
+
         transaction.oncomplete = async () => {
           try {
             // Si estamos guardando datos, marcamos como inicializado
@@ -207,13 +217,13 @@ export class IndexedDBService {
             reject(error);
           }
         };
-        
+
         transaction.onerror = () => {
           console.error("Error en la transacción:", transaction.error);
           db.close();
           reject(transaction.error);
         };
-        
+
         transaction.onabort = () => {
           console.error("Transacción abortada");
           db.close();
@@ -232,7 +242,7 @@ export class IndexedDBService {
   static async clearUserData(userId: string): Promise<void> {
     try {
       const db = await this.openDatabase();
-      
+
       return new Promise((resolve, reject) => {
         const transaction = db.transaction(
           [BOOKS_STORE, NOTES_STORE],
@@ -254,7 +264,7 @@ export class IndexedDBService {
               bookIdsToDelete.push(book.id);
             }
           });
-          
+
           // Obtener todas las notas del usuario
           const getAllNotesRequest = notesStore.getAll();
           getAllNotesRequest.onsuccess = () => {
@@ -264,26 +274,31 @@ export class IndexedDBService {
                 noteIdsToDelete.push(note.id);
               }
             });
-            
+
             // Una vez identificados todos los elementos a eliminar, eliminarlos en la misma transacción
-            bookIdsToDelete.forEach(id => {
+            bookIdsToDelete.forEach((id) => {
               booksStore.delete(id);
             });
-            
-            noteIdsToDelete.forEach(id => {
+
+            noteIdsToDelete.forEach((id) => {
               notesStore.delete(id);
             });
           };
         };
-        
+
         transaction.oncomplete = () => {
-          console.log(`Se eliminaron ${bookIdsToDelete.length} libros y ${noteIdsToDelete.length} notas`);
+          console.log(
+            `Se eliminaron ${bookIdsToDelete.length} libros y ${noteIdsToDelete.length} notas`
+          );
           db.close();
           resolve();
         };
-        
+
         transaction.onerror = () => {
-          console.error("Error al limpiar datos de usuario:", transaction.error);
+          console.error(
+            "Error al limpiar datos de usuario:",
+            transaction.error
+          );
           db.close();
           reject(transaction.error);
         };
@@ -517,29 +532,33 @@ export class IndexedDBService {
       return new Promise((resolve, reject) => {
         const transaction = db.transaction([NOTES_STORE], "readwrite");
         const store = transaction.objectStore(NOTES_STORE);
-        
+
         // Primero verificamos si la nota existe para este usuario
         const getRequest = store.get(note.id);
-        
+
         getRequest.onsuccess = () => {
           const existingNote = getRequest.result;
-          
+
           // Si la nota no existe o no pertenece al usuario actual
           if (!existingNote || existingNote.userId !== userId) {
             db.close();
-            reject(new Error(`Nota con ID ${note.id} no encontrada o no pertenece al usuario actual`));
+            reject(
+              new Error(
+                `Nota con ID ${note.id} no encontrada o no pertenece al usuario actual`
+              )
+            );
             return;
           }
-          
+
           // Actualizar la nota manteniendo el userId
-          const updatedNote = { 
-            ...note, 
-            userId, 
-            updatedAt: Date.now() 
+          const updatedNote = {
+            ...note,
+            userId,
+            updatedAt: Date.now(),
           };
-          
+
           const putRequest = store.put(updatedNote);
-          
+
           putRequest.onsuccess = () => {
             // Eliminar el userId antes de devolverla
             const { userId: _, ...returnNote } = updatedNote;
@@ -548,22 +567,28 @@ export class IndexedDBService {
               resolve(returnNote as Note);
             };
           };
-          
+
           putRequest.onerror = () => {
             console.error("Error al actualizar nota:", putRequest.error);
             db.close();
             reject(putRequest.error);
           };
         };
-        
+
         getRequest.onerror = () => {
-          console.error("Error al obtener nota para actualizar:", getRequest.error);
+          console.error(
+            "Error al obtener nota para actualizar:",
+            getRequest.error
+          );
           db.close();
           reject(getRequest.error);
         };
-        
+
         transaction.onerror = () => {
-          console.error("Error en transacción al actualizar nota:", transaction.error);
+          console.error(
+            "Error en transacción al actualizar nota:",
+            transaction.error
+          );
           db.close();
           reject(transaction.error);
         };
@@ -586,29 +611,33 @@ export class IndexedDBService {
       return new Promise((resolve, reject) => {
         const transaction = db.transaction([BOOKS_STORE], "readwrite");
         const store = transaction.objectStore(BOOKS_STORE);
-        
+
         // Primero verificamos si el libro existe para este usuario
         const getRequest = store.get(book.id);
-        
+
         getRequest.onsuccess = () => {
           const existingBook = getRequest.result;
-          
+
           // Si el libro no existe o no pertenece al usuario actual
           if (!existingBook || existingBook.userId !== userId) {
             db.close();
-            reject(new Error(`Libro con ID ${book.id} no encontrado o no pertenece al usuario actual`));
+            reject(
+              new Error(
+                `Libro con ID ${book.id} no encontrado o no pertenece al usuario actual`
+              )
+            );
             return;
           }
-          
+
           // Actualizar el libro manteniendo el userId
-          const updatedBook = { 
-            ...book, 
-            userId, 
-            updatedAt: Date.now() 
+          const updatedBook = {
+            ...book,
+            userId,
+            updatedAt: Date.now(),
           };
-          
+
           const putRequest = store.put(updatedBook);
-          
+
           putRequest.onsuccess = () => {
             // Eliminar el userId antes de devolverlo
             const { userId: _, ...returnBook } = updatedBook;
@@ -617,22 +646,28 @@ export class IndexedDBService {
               resolve(returnBook as Book);
             };
           };
-          
+
           putRequest.onerror = () => {
             console.error("Error al actualizar libro:", putRequest.error);
             db.close();
             reject(putRequest.error);
           };
         };
-        
+
         getRequest.onerror = () => {
-          console.error("Error al obtener libro para actualizar:", getRequest.error);
+          console.error(
+            "Error al obtener libro para actualizar:",
+            getRequest.error
+          );
           db.close();
           reject(getRequest.error);
         };
-        
+
         transaction.onerror = () => {
-          console.error("Error en transacción al actualizar libro:", transaction.error);
+          console.error(
+            "Error en transacción al actualizar libro:",
+            transaction.error
+          );
           db.close();
           reject(transaction.error);
         };
@@ -655,11 +690,11 @@ export class IndexedDBService {
       return new Promise((resolve, reject) => {
         const transaction = db.transaction([NOTES_STORE], "readwrite");
         const store = transaction.objectStore(NOTES_STORE);
-        
+
         // Añadir la nota con el userId
         const noteWithUser = { ...note, userId };
         const request = store.add(noteWithUser);
-        
+
         request.onsuccess = () => {
           // Eliminar el userId antes de devolverla
           const { userId: _, ...returnNote } = noteWithUser;
@@ -668,15 +703,18 @@ export class IndexedDBService {
             resolve(returnNote as Note);
           };
         };
-        
+
         request.onerror = () => {
           console.error("Error al añadir nota:", request.error);
           db.close();
           reject(request.error);
         };
-        
+
         transaction.onerror = () => {
-          console.error("Error en transacción al añadir nota:", transaction.error);
+          console.error(
+            "Error en transacción al añadir nota:",
+            transaction.error
+          );
           db.close();
           reject(transaction.error);
         };
@@ -699,11 +737,11 @@ export class IndexedDBService {
       return new Promise((resolve, reject) => {
         const transaction = db.transaction([BOOKS_STORE], "readwrite");
         const store = transaction.objectStore(BOOKS_STORE);
-        
+
         // Añadir el libro con el userId
         const bookWithUser = { ...book, userId };
         const request = store.add(bookWithUser);
-        
+
         request.onsuccess = () => {
           // Eliminar el userId antes de devolverlo
           const { userId: _, ...returnBook } = bookWithUser;
@@ -712,15 +750,18 @@ export class IndexedDBService {
             resolve(returnBook as Book);
           };
         };
-        
+
         request.onerror = () => {
           console.error("Error al añadir libro:", request.error);
           db.close();
           reject(request.error);
         };
-        
+
         transaction.onerror = () => {
-          console.error("Error en transacción al añadir libro:", transaction.error);
+          console.error(
+            "Error en transacción al añadir libro:",
+            transaction.error
+          );
           db.close();
           reject(transaction.error);
         };
@@ -742,43 +783,54 @@ export class IndexedDBService {
       const userId = this.getUserStorageKey();
 
       return new Promise((resolve, reject) => {
-        const transaction = db.transaction([NOTES_STORE, BOOKS_STORE], "readwrite");
+        const transaction = db.transaction(
+          [NOTES_STORE, BOOKS_STORE],
+          "readwrite"
+        );
         const notesStore = transaction.objectStore(NOTES_STORE);
         const booksStore = transaction.objectStore(BOOKS_STORE);
-        
+
         // Primero verificamos si el libro de destino existe
         const getBookRequest = booksStore.get(targetBookId);
-        
+
         getBookRequest.onsuccess = () => {
           const targetBook = getBookRequest.result;
-          
+
           if (!targetBook || targetBook.userId !== userId) {
             db.close();
-            reject(new Error(`Libro con ID ${targetBookId} no encontrado o no pertenece al usuario actual`));
+            reject(
+              new Error(
+                `Libro con ID ${targetBookId} no encontrado o no pertenece al usuario actual`
+              )
+            );
             return;
           }
-          
+
           // Ahora obtenemos la nota a mover
           const getNoteRequest = notesStore.get(noteId);
-          
+
           getNoteRequest.onsuccess = () => {
             const note = getNoteRequest.result;
-            
+
             if (!note || note.userId !== userId) {
               db.close();
-              reject(new Error(`Nota con ID ${noteId} no encontrada o no pertenece al usuario actual`));
+              reject(
+                new Error(
+                  `Nota con ID ${noteId} no encontrada o no pertenece al usuario actual`
+                )
+              );
               return;
             }
-            
+
             // Actualizamos la nota con el nuevo bookId
-            const updatedNote = { 
-              ...note, 
-              bookId: targetBookId, 
-              updatedAt: Date.now() 
+            const updatedNote = {
+              ...note,
+              bookId: targetBookId,
+              updatedAt: Date.now(),
             };
-            
+
             const putRequest = notesStore.put(updatedNote);
-            
+
             putRequest.onsuccess = () => {
               // Eliminar el userId antes de devolverla
               const { userId: _, ...returnNote } = updatedNote;
@@ -787,29 +839,41 @@ export class IndexedDBService {
                 resolve(returnNote as Note);
               };
             };
-            
+
             putRequest.onerror = () => {
-              console.error("Error al actualizar nota en cambio de libro:", putRequest.error);
+              console.error(
+                "Error al actualizar nota en cambio de libro:",
+                putRequest.error
+              );
               db.close();
               reject(putRequest.error);
             };
           };
-          
+
           getNoteRequest.onerror = () => {
-            console.error("Error al obtener nota para mover:", getNoteRequest.error);
+            console.error(
+              "Error al obtener nota para mover:",
+              getNoteRequest.error
+            );
             db.close();
             reject(getNoteRequest.error);
           };
         };
-        
+
         getBookRequest.onerror = () => {
-          console.error("Error al obtener libro de destino:", getBookRequest.error);
+          console.error(
+            "Error al obtener libro de destino:",
+            getBookRequest.error
+          );
           db.close();
           reject(getBookRequest.error);
         };
-        
+
         transaction.onerror = () => {
-          console.error("Error en transacción al mover nota:", transaction.error);
+          console.error(
+            "Error en transacción al mover nota:",
+            transaction.error
+          );
           db.close();
           reject(transaction.error);
         };

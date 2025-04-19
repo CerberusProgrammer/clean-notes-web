@@ -54,11 +54,21 @@ export default {
     deleteBook: "Delete book",
     bookName: "Book name",
     bookIcon: "Icon",
+    bookColor: "Color",
     createBook: "Create book",
     saveChanges: "Save changes",
     confirmDeleteBook: "Are you sure? All notes in this book will be deleted.",
     notesInBook: "notes",
-    defaultBook: "General Book", // Añadido
+    defaultBook: "General Book",
+    notes: "notes",
+    sortBooks: "Sort books",
+    sortBy: "Sort by",
+    sortByName: "Name",
+    sortByRecent: "Recent",
+    sortByCreated: "Created",
+    sortCustom: "Custom",
+    dragToReorder: "Drag to reorder",
+    createFirst: "Create a note here",
   },
   notes: {
     newNote: "New note",
@@ -89,7 +99,6 @@ export default {
     noteNotFoundDesc:
       "The note you're looking for doesn't exist or has been deleted",
     backToNotes: "Back to my notes",
-    // Propiedades faltantes añadidas
     noSearchResults: "No search results",
     noSearchResultsFor: "No results found for",
     startByCreating: "Start by creating a new note",
@@ -102,6 +111,13 @@ export default {
     saveNote: "Save note",
     search: "Search notes",
     pressEnter: "Press Ctrl+Enter to save",
+    sortNotes: "Sort notes",
+    sortAZ: "A-Z",
+    sortByCreated: "Created",
+    new: "New",
+    createFirst: "Create first note",
+    moveToBook: "Move to book",
+    movedToBook: "Note moved to",
   },
   editor: {
     edit: "Edit",
@@ -125,6 +141,11 @@ export default {
   ui: {
     darkMode: "Dark mode",
     lightMode: "Light mode",
+    collapseSidebar: "Collapse sidebar",
+    expandSidebar: "Expand sidebar",
+    compactView: "Compact view",
+    normalView: "Normal view",
+    dragToReorder: "Drag to reorder",
   },
   settings: {
     exportDescription: "Export all your notes as JSON file",
@@ -180,6 +201,9 @@ export default {
     nameDescription: "Your display name",
     editName: "Edit name",
     logoutDescription: "End your current session",
+    compactSidebar: "Compact sidebar",
+    bookSettings: "Book settings",
+    bookDefaultSort: "Default book sort order",
   },
   shortcuts: {
     createNote: "Create new note",

@@ -54,12 +54,22 @@ export default {
     deleteBook: "Eliminar libro",
     bookName: "Nombre del libro",
     bookIcon: "Ícono",
+    bookColor: "Color",
     createBook: "Crear libro",
     saveChanges: "Guardar cambios",
     confirmDeleteBook:
       "¿Estás seguro? Se eliminarán todas las notas contenidas en este libro.",
     notesInBook: "notas",
-    defaultBook: "Libro general", // Añadido
+    defaultBook: "Libro general",
+    notes: "notas",
+    sortBooks: "Ordenar libros",
+    sortBy: "Ordenar por",
+    sortByName: "Nombre",
+    sortByRecent: "Recientes",
+    sortByCreated: "Creación",
+    sortCustom: "Personalizado",
+    dragToReorder: "Arrastra para reordenar",
+    createFirst: "Crea una nota aquí",
   },
   notes: {
     newNote: "Nueva nota",
@@ -89,7 +99,6 @@ export default {
     noteNotFound: "Nota no encontrada",
     noteNotFoundDesc: "La nota que buscas no existe o ha sido eliminada",
     backToNotes: "Volver a mis notas",
-    // Propiedades faltantes añadidas
     noSearchResults: "Sin resultados de búsqueda",
     noSearchResultsFor: "No se encontraron resultados para",
     startByCreating: "Empieza creando una nueva nota",
@@ -102,6 +111,13 @@ export default {
     saveNote: "Guardar nota",
     search: "Buscar notas",
     pressEnter: "Presiona Ctrl+Enter para guardar",
+    sortNotes: "Ordenar notas",
+    sortAZ: "A-Z",
+    sortByCreated: "Creación",
+    new: "Nueva",
+    createFirst: "Crear primera nota",
+    moveToBook: "Mover a libro",
+    movedToBook: "Nota movida a",
   },
   editor: {
     edit: "Editar",
@@ -125,6 +141,11 @@ export default {
   ui: {
     darkMode: "Modo oscuro",
     lightMode: "Modo claro",
+    collapseSidebar: "Colapsar panel lateral",
+    expandSidebar: "Expandir panel lateral",
+    compactView: "Vista compacta",
+    normalView: "Vista normal",
+    dragToReorder: "Arrastra para reordenar",
   },
   settings: {
     exportDescription: "Exporta todas tus notas como archivo JSON",
@@ -180,6 +201,9 @@ export default {
     redTheme: "Tema rojo",
     greenTheme: "Tema verde",
     amberTheme: "Tema ámbar",
+    compactSidebar: "Barra lateral compacta",
+    bookSettings: "Configuración de libros",
+    bookDefaultSort: "Orden predeterminado de libros",
   },
   shortcuts: {
     createNote: "Crear nueva nota",

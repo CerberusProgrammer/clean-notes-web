@@ -162,18 +162,18 @@ export class NotesService {
     try {
       // Primero obtenemos la nota existente
       const existingNote = await IndexedDBService.getNoteById(noteUpdate.id);
-      
+
       if (!existingNote) {
         throw new Error(`Nota con ID ${noteUpdate.id} no encontrada`);
       }
-      
+
       // Actualizar solo el contenido manteniendo el resto de propiedades
       const updatedNote: Note = {
         ...existingNote,
         content: noteUpdate.content,
-        updatedAt: Date.now()
+        updatedAt: Date.now(),
       };
-      
+
       // Usar el nuevo método específico para actualizar una sola nota
       return await IndexedDBService.updateNote(updatedNote);
     } catch (error) {
@@ -192,18 +192,18 @@ export class NotesService {
     try {
       // Primero obtener el libro existente
       const existingBook = await IndexedDBService.getBookById(bookUpdate.id);
-      
+
       if (!existingBook) {
         throw new Error(`Libro con ID ${bookUpdate.id} no encontrado`);
       }
-      
+
       // Actualizar con los nuevos datos
       const updatedBook: Book = {
         ...existingBook,
         ...bookUpdate,
         updatedAt: Date.now(),
       };
-      
+
       // Usar el método específico para actualizar un libro
       return await IndexedDBService.updateBook(updatedBook);
     } catch (error) {
@@ -232,11 +232,11 @@ export class NotesService {
     try {
       // Comprobar primero si la nota existe
       const existingNote = await IndexedDBService.getNoteById(id);
-      
+
       if (!existingNote) {
         throw new Error(`Nota con ID ${id} no encontrada`);
       }
-      
+
       // Usar el método específico para eliminar una nota
       await IndexedDBService.deleteNote(id);
       return id;
@@ -253,11 +253,11 @@ export class NotesService {
     try {
       // Comprobar primero si el libro existe
       const existingBook = await IndexedDBService.getBookById(id);
-      
+
       if (!existingBook) {
         throw new Error(`Libro con ID ${id} no encontrado`);
       }
-      
+
       // Usar el método específico para eliminar un libro y sus notas asociadas
       await IndexedDBService.deleteBook(id);
       return id;
