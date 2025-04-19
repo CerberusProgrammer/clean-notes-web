@@ -275,28 +275,31 @@
 
 .books-header-actions {
   display: flex;
-  gap: 2px;
+  gap: 4px;
 }
 
-.book-sort-button, .book-view-button {
+.book-sort-button,
+.book-view-button {
   background: none;
   border: none;
-  width: 22px;
-  height: 22px;
+  width: 24px;
+  height: 24px;
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: var(--radius-sm);
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   color: var(--text-tertiary);
   cursor: pointer;
   transition: all 0.2s ease;
   padding: 0;
 }
 
-.book-sort-button:hover, .book-view-button:hover,
-.book-sort-button.active, .book-view-button.active {
-  background-color: var(--surface);
+.book-sort-button:hover,
+.book-view-button:hover,
+.book-sort-button.active,
+.book-view-button.active {
+  background-color: rgba(var(--primary-rgb), 0.1);
   color: var(--primary);
 }
 
@@ -473,20 +476,21 @@
 .notes-sort-button {
   background: none;
   border: none;
-  font-size: 0.65rem;
+  font-size: 0.7rem;
   color: var(--text-tertiary);
   display: flex;
   align-items: center;
-  gap: 2px;
-  padding: 2px 6px;
+  gap: 4px;
+  padding: 3px 8px;
   border-radius: var(--radius-sm);
   cursor: pointer;
   transition: all 0.2s ease;
+  white-space: nowrap;
 }
 
 .notes-sort-button:hover {
-  background-color: var(--surface);
-  color: var(--text-primary);
+  background-color: rgba(var(--primary-rgb), 0.1);
+  color: var(--primary);
 }
 
 .notes-sort-button svg {
@@ -608,21 +612,22 @@
 
 .create-note-button-small {
   background: none;
-  border: 1px dashed var(--border);
+  border: 1px solid var(--border);
   color: var(--text-tertiary);
-  padding: 4px var(--space-xs);
+  padding: 4px 8px;
   font-size: 0.7rem;
-  border-radius: var(--radius-sm);
+  border-radius: 4px;
   cursor: pointer;
   box-shadow: none;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 4px;
+  transition: all 0.2s ease;
 }
 
 .create-note-button-small:hover {
-  background-color: var(--primary-light);
+  background-color: rgba(var(--primary-rgb), 0.1);
   border-color: var(--primary-light);
   color: var(--primary);
 }
@@ -736,9 +741,15 @@
 }
 
 @keyframes pulseOpacity {
-  0% { opacity: 0.6; }
-  50% { opacity: 0.9; }
-  100% { opacity: 0.6; }
+  0% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 0.9;
+  }
+  100% {
+    opacity: 0.6;
+  }
 }
 
 /* Modal de libros */
@@ -1037,4 +1048,75 @@ textarea::-webkit-scrollbar-thumb:hover {
   to {
     transform: translateX(0);
   }
+}
+
+/* Estilos adicionales para los menús dropdown en el drawer */
+.book-sort-dropdown {
+  position: relative;
+}
+
+/* Menú de ordenación específico */
+.sort-menu {
+  background-color: rgba(var(--surface-rgb), 0.95);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  border-radius: 8px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.06);
+  border: 1px solid var(--border);
+  padding: 6px 0;
+  min-width: 160px;
+  max-width: 220px;
+  z-index: 1000;
+}
+
+.dark-theme .sort-menu {
+  background-color: rgba(30, 30, 30, 0.92);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.dropdown-title {
+  font-size: 0.7rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-tertiary);
+  padding: 6px 12px;
+  margin-bottom: 2px;
+}
+
+.dropdown-items {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Refina el estilo de elementos en el menú dropdown */
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 6px 12px;
+  border: none;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  color: var(--text-primary);
+  font-size: 0.85rem;
+  transition: all 0.15s ease;
+  border-radius: 4px;
+  margin: 0 4px;
+}
+
+.dropdown-item:hover {
+  background-color: rgba(var(--primary-rgb), 0.12);
+  color: var(--primary);
+}
+
+.dark-theme .dropdown-item:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.dropdown-item.active {
+  background-color: rgba(var(--primary-rgb), 0.12);
+  color: var(--primary);
+  font-weight: 500;
 }

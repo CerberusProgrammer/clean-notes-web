@@ -41,34 +41,41 @@ export default function MainLayout({ children }: Props) {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [darkMode, setDarkMode] = useState(false);
   const [colorTheme, setColorTheme] = useState<ThemeColor>("blue");
-  const [expandedBooks, setExpandedBooks] = useState<Record<string, boolean>>({});
+  const [expandedBooks, setExpandedBooks] = useState<Record<string, boolean>>(
+    {}
+  );
   const [newBookModalOpen, setNewBookModalOpen] = useState(false);
   const [newBookName, setNewBookName] = useState("");
   const [newBookEmoji, setNewBookEmoji] = useState("📓");
   const [newBookColor, setNewBookColor] = useState(BOOK_COLORS[0]);
   const [editingBook, setEditingBook] = useState<string | null>(null);
   const [isCreatingBook, setIsCreatingBook] = useState(false);
-  
+
   // Estado para drag & drop
   const [isDragging, setIsDragging] = useState(false);
   const [draggedNoteId, setDraggedNoteId] = useState<string | null>(null);
   const [draggedBookId, setDraggedBookId] = useState<string | null>(null);
   const [dragOverBookId, setDragOverBookId] = useState<string | null>(null);
-  
+
   // Orden personalizado de libros almacenado en localStorage
   const [bookOrder, setBookOrder] = useState<string[]>([]);
-  
+
   // Vista compacta o normal
   const [compactView, setCompactView] = useState<boolean>(() => {
     return localStorage.getItem("cleanNotes-compactView") === "true";
   });
-  
+
   // Opciones de ordenación
   const [bookSortOption, setBookSortOption] = useState<BookSortOption>(() => {
-    return (localStorage.getItem("cleanNotes-bookSort") as BookSortOption) || "custom";
+    return (
+      (localStorage.getItem("cleanNotes-bookSort") as BookSortOption) ||
+      "custom"
+    );
   });
-  
-  const [noteSortOptions, setNoteSortOptions] = useState<Record<string, NoteSortOption>>(() => {
+
+  const [noteSortOptions, setNoteSortOptions] = useState<
+    Record<string, NoteSortOption>
+  >(() => {
     try {
       const saved = localStorage.getItem("cleanNotes-noteSortOptions");
       return saved ? JSON.parse(saved) : {};
@@ -76,11 +83,11 @@ export default function MainLayout({ children }: Props) {
       return {};
     }
   });
-  
+
   const [isMobile, setIsMobile] = useState(false);
   const [showMobileOverlay, setShowMobileOverlay] = useState(false);
   const [showBookSortMenu, setShowBookSortMenu] = useState(false);
-  
+
   // Referencia para el menú de ordenación
   const sortMenuRef = useRef<HTMLDivElement>(null);
 
@@ -91,17 +98,20 @@ export default function MainLayout({ children }: Props) {
   // Efecto para detectar clics fuera del menú de ordenación
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (sortMenuRef.current && !sortMenuRef.current.contains(event.target as Node)) {
+      if (
+        sortMenuRef.current &&
+        !sortMenuRef.current.contains(event.target as Node)
+      ) {
         setShowBookSortMenu(false);
       }
     }
-    
+
     document.addEventListener("mousedown", handleClickOutside);
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
-  
+
   // Efecto para cargar el orden personalizado de libros
   useEffect(() => {
     try {
@@ -113,31 +123,31 @@ export default function MainLayout({ children }: Props) {
       console.error("Error al cargar el orden de libros:", e);
     }
   }, []);
-  
+
   // Efecto para guardar el orden de libros cuando cambia
   useEffect(() => {
     if (bookOrder.length > 0) {
       localStorage.setItem("cleanNotes-bookOrder", JSON.stringify(bookOrder));
     }
   }, [bookOrder]);
-  
+
   // Actualizar el orden cuando se añade o elimina un libro
   useEffect(() => {
     if (state.books.length > 0) {
       // Añadir nuevos libros al orden
       const currentIds = new Set(bookOrder);
       const newOrder = [...bookOrder];
-      
-      state.books.forEach(book => {
+
+      state.books.forEach((book) => {
         if (!currentIds.has(book.id)) {
           newOrder.push(book.id);
         }
       });
-      
+
       // Eliminar libros que ya no existen
-      const existingIds = new Set(state.books.map(book => book.id));
-      const filteredOrder = newOrder.filter(id => existingIds.has(id));
-      
+      const existingIds = new Set(state.books.map((book) => book.id));
+      const filteredOrder = newOrder.filter((id) => existingIds.has(id));
+
       if (JSON.stringify(filteredOrder) !== JSON.stringify(bookOrder)) {
         setBookOrder(filteredOrder);
       }
@@ -170,7 +180,9 @@ export default function MainLayout({ children }: Props) {
       document.body.classList.add("dark-theme");
     }
 
-    const savedColorTheme = localStorage.getItem("cleanNotes-colorTheme") as ThemeColor;
+    const savedColorTheme = localStorage.getItem(
+      "cleanNotes-colorTheme"
+    ) as ThemeColor;
     if (savedColorTheme) {
       setColorTheme(savedColorTheme);
     }
@@ -303,9 +315,9 @@ export default function MainLayout({ children }: Props) {
         ...expandedBooks,
         [newBook.id]: true,
       });
-      
+
       // Añadir el nuevo libro al final del orden
-      setBookOrder(prevOrder => [...prevOrder, newBook.id]);
+      setBookOrder((prevOrder) => [...prevOrder, newBook.id]);
 
       setNewBookModalOpen(false);
       setNewBookName("");
@@ -326,10 +338,9 @@ export default function MainLayout({ children }: Props) {
           type: "DELETE_BOOK",
           payload: { id: bookId },
         });
-        
+
         // Eliminar el libro del orden personalizado
-        setBookOrder(prevOrder => prevOrder.filter(id => id !== bookId));
-        
+        setBookOrder((prevOrder) => prevOrder.filter((id) => id !== bookId));
       } catch (error) {
         console.error("Error al eliminar libro:", error);
       }
@@ -390,25 +401,28 @@ export default function MainLayout({ children }: Props) {
     setCompactView(newValue);
     localStorage.setItem("cleanNotes-compactView", String(newValue));
   };
-  
+
   const setBookSort = (option: BookSortOption) => {
     setBookSortOption(option);
     localStorage.setItem("cleanNotes-bookSort", option);
     setShowBookSortMenu(false);
   };
-  
+
   const setNoteSort = (bookId: string, option: NoteSortOption) => {
     const newOptions = { ...noteSortOptions, [bookId]: option };
     setNoteSortOptions(newOptions);
-    localStorage.setItem("cleanNotes-noteSortOptions", JSON.stringify(newOptions));
+    localStorage.setItem(
+      "cleanNotes-noteSortOptions",
+      JSON.stringify(newOptions)
+    );
   };
-  
+
   // Ordenar libros según la opción seleccionada
   const getSortedBooks = () => {
     if (state.books.length === 0) return [];
-    
+
     const books = [...state.books];
-    
+
     switch (bookSortOption) {
       case "name":
         return books.sort((a, b) => a.name.localeCompare(b.name));
@@ -423,23 +437,23 @@ export default function MainLayout({ children }: Props) {
           return books.sort((a, b) => {
             const indexA = bookOrder.indexOf(a.id);
             const indexB = bookOrder.indexOf(b.id);
-            
+
             // Si algún ID no está en el orden, ponerlo al final
             if (indexA === -1) return 1;
             if (indexB === -1) return -1;
-            
+
             return indexA - indexB;
           });
         }
         return books;
     }
   };
-  
+
   // Ordenar notas según la opción seleccionada para cada libro
   const getSortedNotes = (bookId: string) => {
-    const notesInBook = state.notes.filter(note => note.bookId === bookId);
+    const notesInBook = state.notes.filter((note) => note.bookId === bookId);
     const sortOption = noteSortOptions[bookId] || "recent";
-    
+
     switch (sortOption) {
       case "oldest":
         return [...notesInBook].sort((a, b) => a.updatedAt - b.updatedAt);
@@ -473,7 +487,7 @@ export default function MainLayout({ children }: Props) {
   const handleDrop = async (targetBookId: string, e: React.DragEvent) => {
     e.preventDefault();
     const data = e.dataTransfer.getData("text/plain");
-    
+
     // Verificar si es una nota o un libro
     if (data.startsWith("note:")) {
       const noteId = data.substring(5) || draggedNoteId;
@@ -499,17 +513,17 @@ export default function MainLayout({ children }: Props) {
       }
     } else if (data.startsWith("book:") && bookSortOption === "custom") {
       const bookId = data.substring(5) || draggedBookId;
-      
+
       if (bookId && bookId !== targetBookId) {
         // Reordenar libros
         const newOrder = [...bookOrder];
         const draggedIndex = newOrder.indexOf(bookId);
         const targetIndex = newOrder.indexOf(targetBookId);
-        
+
         if (draggedIndex !== -1 && targetIndex !== -1) {
           // Quitar del orden actual
           newOrder.splice(draggedIndex, 1);
-          
+
           // Insertar en la nueva posición
           if (draggedIndex < targetIndex) {
             // Si arrastramos hacia abajo, insertar después del objetivo
@@ -518,7 +532,7 @@ export default function MainLayout({ children }: Props) {
             // Si arrastramos hacia arriba, insertar antes del objetivo
             newOrder.splice(targetIndex, 0, bookId);
           }
-          
+
           setBookOrder(newOrder);
         }
       }
@@ -540,7 +554,7 @@ export default function MainLayout({ children }: Props) {
   // Manejadores para arrastrar y soltar libros
   const handleBookDragStart = (bookId: string, e: React.DragEvent) => {
     if (bookSortOption !== "custom") return;
-    
+
     setIsDragging(true);
     setDraggedBookId(bookId);
     e.dataTransfer.setData("text/plain", `book:${bookId}`);
@@ -551,15 +565,22 @@ export default function MainLayout({ children }: Props) {
     }
   };
 
-  const handleDragOver = (e: React.DragEvent, id: string, type: "book" | "note") => {
+  const handleDragOver = (
+    e: React.DragEvent,
+    id: string,
+    type: "book" | "note"
+  ) => {
     e.preventDefault();
-    
+
     const data = e.dataTransfer.getData("text/plain") || "";
-    
+
     if (type === "book") {
       // Si estamos arrastrando sobre un libro
       if (e.currentTarget instanceof HTMLElement) {
-        if (data.startsWith("note:") || (data.startsWith("book:") && bookSortOption === "custom")) {
+        if (
+          data.startsWith("note:") ||
+          (data.startsWith("book:") && bookSortOption === "custom")
+        ) {
           e.currentTarget.classList.add("droppable");
           if (data.startsWith("book:")) {
             setDragOverBookId(id);
@@ -584,7 +605,9 @@ export default function MainLayout({ children }: Props) {
     setDraggedBookId(null);
     setDragOverBookId(null);
 
-    const elements = document.querySelectorAll(".dragging, .droppable, .dragging-over");
+    const elements = document.querySelectorAll(
+      ".dragging, .droppable, .dragging-over"
+    );
     elements.forEach((el) => {
       if (el instanceof HTMLElement) {
         el.classList.remove("dragging");
@@ -617,36 +640,50 @@ export default function MainLayout({ children }: Props) {
       setShowMobileOverlay(false);
     }
   };
-  
+
   // Obtener el conteo de notas en cada libro
   const getNoteCount = (bookId: string) => {
-    return state.notes.filter(note => note.bookId === bookId).length;
+    return state.notes.filter((note) => note.bookId === bookId).length;
   };
-  
+
   // Obtener los nombres de las opciones de ordenación
   const getBookSortName = (option: BookSortOption): string => {
     switch (option) {
-      case "name": return t.books.sortByName || "Nombre";
-      case "recent": return t.books.sortByRecent || "Recientes";
-      case "created": return t.books.sortByCreated || "Creados";
-      case "custom": return t.books.sortCustom || "Personalizado";
-      default: return t.books.sortCustom || "Personalizado";
+      case "name":
+        return t.books.sortByName || "Nombre";
+      case "recent":
+        return t.books.sortByRecent || "Recientes";
+      case "created":
+        return t.books.sortByCreated || "Creados";
+      case "custom":
+        return t.books.sortCustom || "Personalizado";
+      default:
+        return t.books.sortCustom || "Personalizado";
     }
   };
-  
+
   const getNoteSortName = (option: NoteSortOption): string => {
     switch (option) {
-      case "recent": return t.notes.sortNewest || "Recientes";
-      case "oldest": return t.notes.sortOldest || "Antiguas";
-      case "created": return t.notes.sortByCreated || "Creación";
-      case "az": return t.notes.sortAZ || "A-Z";
-      default: return t.notes.sortNewest || "Recientes";
+      case "recent":
+        return t.notes.sortNewest || "Recientes";
+      case "oldest":
+        return t.notes.sortOldest || "Antiguas";
+      case "created":
+        return t.notes.sortByCreated || "Creación";
+      case "az":
+        return t.notes.sortAZ || "A-Z";
+      default:
+        return t.notes.sortNewest || "Recientes";
     }
   };
 
   return (
     <div className={`app-container ${darkMode ? "dark-theme" : ""}`}>
-      <div className={`sidebar ${sidebarOpen ? "open" : "closed"} ${compactView ? "book-view-compact" : ""}`}>
+      <div
+        className={`sidebar ${sidebarOpen ? "open" : "closed"} ${
+          compactView ? "book-view-compact" : ""
+        }`}
+      >
         <div className="sidebar-header">
           <h1 className="app-logo">
             <span className="logo-icon">📝</span>
@@ -720,7 +757,7 @@ export default function MainLayout({ children }: Props) {
               <div className="no-books-message">
                 <div className="no-books-illustration">📚</div>
                 <p>{t.books.noBooks}</p>
-                <button 
+                <button
                   className="create-first-book-button"
                   onClick={() => setNewBookModalOpen(true)}
                 >
@@ -736,7 +773,7 @@ export default function MainLayout({ children }: Props) {
                   <span className="books-header-title">{t.books.title}</span>
                   <div className="books-header-actions">
                     <div className="book-sort-dropdown" ref={sortMenuRef}>
-                      <button 
+                      <button
                         className="book-sort-button"
                         onClick={() => setShowBookSortMenu(!showBookSortMenu)}
                         title={t.books.sortBooks || "Ordenar libros"}
@@ -745,23 +782,33 @@ export default function MainLayout({ children }: Props) {
                       </button>
                       {showBookSortMenu && (
                         <div className="dropdown-menu sort-menu">
-                          <div className="dropdown-title">{t.books.sortBy || "Ordenar por"}</div>
+                          <div className="dropdown-title">
+                            {t.books.sortBy || "Ordenar por"}
+                          </div>
                           <div className="dropdown-items">
-                            {["custom", "name", "recent", "created"].map((option) => (
-                              <button 
-                                key={option}
-                                className={`dropdown-item ${bookSortOption === option ? "active" : ""}`}
-                                onClick={() => setBookSort(option as BookSortOption)}
-                              >
-                                {getBookSortName(option as BookSortOption)}
-                              </button>
-                            ))}
+                            {["custom", "name", "recent", "created"].map(
+                              (option) => (
+                                <button
+                                  key={option}
+                                  className={`dropdown-item ${
+                                    bookSortOption === option ? "active" : ""
+                                  }`}
+                                  onClick={() =>
+                                    setBookSort(option as BookSortOption)
+                                  }
+                                >
+                                  {getBookSortName(option as BookSortOption)}
+                                </button>
+                              )
+                            )}
                           </div>
                         </div>
                       )}
                     </div>
-                    <button 
-                      className={`book-view-button ${compactView ? "active" : ""}`}
+                    <button
+                      className={`book-view-button ${
+                        compactView ? "active" : ""
+                      }`}
                       onClick={toggleCompactView}
                       title={compactView ? t.ui.normalView : t.ui.compactView}
                     >
@@ -770,11 +817,13 @@ export default function MainLayout({ children }: Props) {
                   </div>
                 </div>
               )}
-              
+
               {getSortedBooks().map((book) => (
-                <div 
-                  key={book.id} 
-                  className={`book-item ${draggedBookId === book.id ? "dragging" : ""} ${dragOverBookId === book.id ? "dragging-over" : ""}`}
+                <div
+                  key={book.id}
+                  className={`book-item ${
+                    draggedBookId === book.id ? "dragging" : ""
+                  } ${dragOverBookId === book.id ? "dragging-over" : ""}`}
                   draggable={bookSortOption === "custom" && sidebarOpen}
                   onDragStart={(e) => handleBookDragStart(book.id, e)}
                   onDragEnd={handleDragEnd}
@@ -797,13 +846,17 @@ export default function MainLayout({ children }: Props) {
                     onDragOver={(e) => handleDragOver(e, book.id, "book")}
                     onDragLeave={(e) => handleDragLeave(e, "book")}
                     onDrop={(e) => handleDrop(book.id, e)}
-                    style={{ 
-                      borderLeft: sidebarOpen ? `3px solid ${book.color || "#4f46e5"}` : "none" 
+                    style={{
+                      borderLeft: sidebarOpen
+                        ? `3px solid ${book.color || "#4f46e5"}`
+                        : "none",
                     }}
                   >
                     {sidebarOpen && (
                       <span
-                        className={`book-expand-toggle ${expandedBooks[book.id] ? 'expanded' : ''}`}
+                        className={`book-expand-toggle ${
+                          expandedBooks[book.id] ? "expanded" : ""
+                        }`}
                         onClick={(e) => toggleBookExpansion(book.id, e)}
                       >
                         ▶
@@ -811,8 +864,8 @@ export default function MainLayout({ children }: Props) {
                     )}
 
                     <div className="book-info">
-                      <span 
-                        className="book-icon" 
+                      <span
+                        className="book-icon"
                         style={{ color: book.color || "#4f46e5" }}
                       >
                         {book.emoji}
@@ -866,17 +919,28 @@ export default function MainLayout({ children }: Props) {
                       {/* Cabecera de ordenación de notas */}
                       {getNoteCount(book.id) > 0 && (
                         <div className="notes-header">
-                          <button 
+                          <button
                             className="notes-sort-button"
                             onClick={() => {
-                              const currentOption = noteSortOptions[book.id] || "recent";
-                              const options: NoteSortOption[] = ["recent", "oldest", "created", "az"];
-                              const nextIndex = (options.indexOf(currentOption) + 1) % options.length;
+                              const currentOption =
+                                noteSortOptions[book.id] || "recent";
+                              const options: NoteSortOption[] = [
+                                "recent",
+                                "oldest",
+                                "created",
+                                "az",
+                              ];
+                              const nextIndex =
+                                (options.indexOf(currentOption) + 1) %
+                                options.length;
                               setNoteSort(book.id, options[nextIndex]);
                             }}
                             title={t.notes.sortNotes || "Ordenar notas"}
                           >
-                            {getNoteSortName(noteSortOptions[book.id] || "recent")} ⇅
+                            {getNoteSortName(
+                              noteSortOptions[book.id] || "recent"
+                            )}{" "}
+                            ⇅
                           </button>
                           <button
                             className="create-note-button-small"
@@ -888,7 +952,7 @@ export default function MainLayout({ children }: Props) {
                           </button>
                         </div>
                       )}
-                      
+
                       {getNoteCount(book.id) === 0 ? (
                         <div className="empty-book-message">
                           <span>{t.notes.noNotesInBook}</span>
@@ -927,7 +991,7 @@ export default function MainLayout({ children }: Props) {
                               </span>
                             </div>
                             <div className="note-actions">
-                              <button 
+                              <button
                                 className="note-action-btn"
                                 onClick={(e) => {
                                   e.stopPropagation();
@@ -937,7 +1001,7 @@ export default function MainLayout({ children }: Props) {
                               >
                                 ✏️
                               </button>
-                              <button 
+                              <button
                                 className="note-action-btn danger"
                                 onClick={(e) => {
                                   e.stopPropagation();
@@ -1070,9 +1134,33 @@ export default function MainLayout({ children }: Props) {
                 <label>{t.books.bookIcon}</label>
                 <div className="emoji-picker">
                   {[
-                    "📓", "📔", "📒", "📕", "📗", "📘", "📙", "📚", "📝", 
-                    "📋", "📁", "🗂️", "💼", "🏠", "🌳", "🔍", "💡", "⭐",
-                    "🎓", "🎯", "🎨", "📱", "💻", "🔧", "📊", "🧠", "❤️"
+                    "📓",
+                    "📔",
+                    "📒",
+                    "📕",
+                    "📗",
+                    "📘",
+                    "📙",
+                    "📚",
+                    "📝",
+                    "📋",
+                    "📁",
+                    "🗂️",
+                    "💼",
+                    "🏠",
+                    "🌳",
+                    "🔍",
+                    "💡",
+                    "⭐",
+                    "🎓",
+                    "🎯",
+                    "🎨",
+                    "📱",
+                    "💻",
+                    "🔧",
+                    "📊",
+                    "🧠",
+                    "❤️",
                   ].map((emoji) => (
                     <button
                       key={emoji}
@@ -1086,14 +1174,16 @@ export default function MainLayout({ children }: Props) {
                   ))}
                 </div>
               </div>
-              
+
               <div className="form-group">
                 <label>{t.books.bookColor}</label>
                 <div className="color-picker">
-                  {BOOK_COLORS.map(color => (
-                    <div 
+                  {BOOK_COLORS.map((color) => (
+                    <div
                       key={color}
-                      className={`color-option ${newBookColor === color ? 'selected' : ''}`}
+                      className={`color-option ${
+                        newBookColor === color ? "selected" : ""
+                      }`}
                       style={{ backgroundColor: color }}
                       onClick={() => setNewBookColor(color)}
                     ></div>
@@ -1119,7 +1209,12 @@ export default function MainLayout({ children }: Props) {
               <button
                 onClick={() => {
                   if (editingBook) {
-                    handleUpdateBook(editingBook, newBookName, newBookEmoji, newBookColor);
+                    handleUpdateBook(
+                      editingBook,
+                      newBookName,
+                      newBookEmoji,
+                      newBookColor
+                    );
                   } else {
                     handleCreateBook();
                   }
