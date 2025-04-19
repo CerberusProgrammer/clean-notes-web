@@ -1,74 +1,6 @@
 import { Book, Note } from "./Note";
 import { v4 as uuidv4 } from "uuid";
-
-// Implementación de almacenamiento local para simular persistencia
-const STORAGE_KEY_PREFIX = "clean_notes_data_user_";
-const INITIALIZED_FLAG_SUFFIX = "_initialized";
-
-// Función para obtener la clave de almacenamiento específica del usuario
-const getUserStorageKey = (): string => {
-  try {
-    const authData = localStorage.getItem("clean-notes-auth");
-    if (!authData) return `${STORAGE_KEY_PREFIX}anonymous`;
-
-    const userData = JSON.parse(authData);
-    if (!userData.user || !userData.user.id)
-      return `${STORAGE_KEY_PREFIX}anonymous`;
-
-    return `${STORAGE_KEY_PREFIX}${userData.user.id}`;
-  } catch (error) {
-    console.error("Error al obtener el ID del usuario:", error);
-    return `${STORAGE_KEY_PREFIX}anonymous`;
-  }
-};
-
-// Función para verificar si el usuario ha inicializado sus datos
-const isUserDataInitialized = (): boolean => {
-  const storageKey = getUserStorageKey();
-  return (
-    localStorage.getItem(`${storageKey}${INITIALIZED_FLAG_SUFFIX}`) === "true"
-  );
-};
-
-// Función para marcar los datos del usuario como inicializados
-const markUserDataAsInitialized = (): void => {
-  const storageKey = getUserStorageKey();
-  localStorage.setItem(`${storageKey}${INITIALIZED_FLAG_SUFFIX}`, "true");
-};
-
-// Función auxiliar para obtener datos almacenados
-const getStoredData = (): { books: Book[]; notes: Note[] } => {
-  try {
-    const storageKey = getUserStorageKey();
-    const storedData = localStorage.getItem(storageKey);
-    if (storedData) {
-      const parsedData = JSON.parse(storedData);
-      return {
-        books: parsedData.books || [],
-        notes: parsedData.notes || [],
-      };
-    }
-    return { books: [], notes: [] };
-  } catch (error) {
-    console.error("Error al recuperar datos del almacenamiento:", error);
-    return { books: [], notes: [] };
-  }
-};
-
-// Función auxiliar para guardar datos
-const saveData = (books: Book[], notes: Note[]): void => {
-  try {
-    const storageKey = getUserStorageKey();
-    localStorage.setItem(storageKey, JSON.stringify({ books, notes }));
-
-    // Si estamos guardando datos, marcamos como inicializado
-    if (books.length > 0 || notes.length > 0) {
-      markUserDataAsInitialized();
-    }
-  } catch (error) {
-    console.error("Error al guardar datos en el almacenamiento:", error);
-  }
-};
+import { IndexedDBService } from "./IndexedDBService";
 
 // IDs predefinidos para datos de ejemplo
 const generalBookId = "general-book-id-000000000001";
@@ -139,18 +71,28 @@ export class NotesService {
     // Simulación de tiempo de carga
     await new Promise((resolve) => setTimeout(resolve, 300));
 
-    // Verificar si ya hay datos almacenados
-    const { books, notes } = getStoredData();
+    try {
+      // Verificar si ya hay datos almacenados
+      const isInitialized = await IndexedDBService.isUserDataInitialized();
+      const storedData = await IndexedDBService.getStoredData();
 
-    // Si no hay datos Y el usuario no ha inicializado sus datos antes,
-    // inicializar con los datos de ejemplo
-    if (books.length === 0 && notes.length === 0 && !isUserDataInitialized()) {
-      saveData(sampleBooks, sampleNotes);
-      return { books: sampleBooks, notes: sampleNotes };
+      // Si no hay datos Y el usuario no ha inicializado sus datos antes,
+      // inicializar con los datos de ejemplo
+      if (
+        storedData.books.length === 0 &&
+        storedData.notes.length === 0 &&
+        !isInitialized
+      ) {
+        await IndexedDBService.saveData(sampleBooks, sampleNotes);
+        return { books: sampleBooks, notes: sampleNotes };
+      }
+
+      // Si ya está inicializado o tiene datos, respetar lo que tenga (aunque esté vacío)
+      return storedData;
+    } catch (error) {
+      console.error("Error al obtener datos:", error);
+      return { books: [], notes: [] };
     }
-
-    // Si ya está inicializado o tiene datos, respetar lo que tenga (aunque esté vacío)
-    return { books, notes };
   }
 
   static async getNotes(): Promise<Note[]> {
@@ -180,7 +122,7 @@ export class NotesService {
     // Guardar en almacenamiento
     const { books, notes } = await this.getData();
     const updatedNotes = [...notes, newNote];
-    saveData(books, updatedNotes);
+    await IndexedDBService.saveData(books, updatedNotes);
 
     return newNote;
   }
@@ -204,7 +146,7 @@ export class NotesService {
     // Guardar en almacenamiento
     const { books, notes } = await this.getData();
     const updatedBooks = [...books, newBook];
-    saveData(updatedBooks, notes);
+    await IndexedDBService.saveData(updatedBooks, notes);
 
     return newBook;
   }
@@ -229,7 +171,7 @@ export class NotesService {
     };
 
     notes[noteIndex] = updatedNote;
-    saveData(books, notes);
+    await IndexedDBService.saveData(books, notes);
 
     return updatedNote;
   }
@@ -255,7 +197,7 @@ export class NotesService {
     };
 
     books[bookIndex] = updatedBook;
-    saveData(books, notes);
+    await IndexedDBService.saveData(books, notes);
 
     return updatedBook;
   }
@@ -283,7 +225,7 @@ export class NotesService {
     };
 
     notes[noteIndex] = updatedNote;
-    saveData(books, notes);
+    await IndexedDBService.saveData(books, notes);
 
     return updatedNote;
   }
@@ -299,7 +241,7 @@ export class NotesService {
       throw new Error(`Nota con ID ${id} no encontrada`);
     }
 
-    saveData(books, filteredNotes);
+    await IndexedDBService.saveData(books, filteredNotes);
     return id;
   }
 
@@ -317,9 +259,7 @@ export class NotesService {
     // También eliminamos todas las notas que pertenecen a este libro
     const filteredNotes = notes.filter((n) => n.bookId !== id);
 
-    // Aquí incluso si filteredBooks está vacío, no cargaremos datos de ejemplo
-    // porque la bandera de inicialización está activa
-    saveData(filteredBooks, filteredNotes);
+    await IndexedDBService.saveData(filteredBooks, filteredNotes);
     return id;
   }
 
@@ -327,45 +267,35 @@ export class NotesService {
     // Simulación de tiempo de carga
     await new Promise((resolve) => setTimeout(resolve, 150));
 
-    const { notes } = await this.getData();
-    const note = notes.find((n) => n.id === id);
-
-    return note || null;
+    const noteFromDB = await IndexedDBService.getNoteById(id);
+    return noteFromDB;
   }
 
   static async getBookById(id: string): Promise<Book | null> {
     // Simulación de tiempo de carga
     await new Promise((resolve) => setTimeout(resolve, 150));
 
-    const { books } = await this.getData();
-    const book = books.find((b) => b.id === id);
-
-    return book || null;
+    const bookFromDB = await IndexedDBService.getBookById(id);
+    return bookFromDB;
   }
 
   static async clearData(): Promise<void> {
     // Simulación de tiempo de carga
     await new Promise((resolve) => setTimeout(resolve, 150));
 
-    // Eliminar los datos del usuario pero conservar la bandera de inicialización
-    const storageKey = getUserStorageKey();
-    localStorage.removeItem(storageKey);
-
-    // Mantenemos la bandera de inicialización para que no se vuelvan a cargar
-    // los datos de ejemplo cuando el usuario ha borrado intencionalmente todo
-    markUserDataAsInitialized();
+    await IndexedDBService.clearAllUserData();
+    await IndexedDBService.markUserDataAsInitialized();
   }
 
   static async resetToDefault(): Promise<void> {
     // Simulación de tiempo de carga
     await new Promise((resolve) => setTimeout(resolve, 150));
 
-    // Eliminar totalmente los datos del usuario, incluyendo la bandera
-    const storageKey = getUserStorageKey();
-    localStorage.removeItem(storageKey);
-    localStorage.removeItem(`${storageKey}${INITIALIZED_FLAG_SUFFIX}`);
+    // Eliminar datos y reset de la bandera
+    await IndexedDBService.clearAllUserData();
 
-    // Esto provocará que la próxima vez que se cargue getData() se carguen los datos de ejemplo
+    // Al eliminar la marca de inicializado, la próxima vez se cargarán los datos de ejemplo
+    // Esto se hace limpiando todos los datos del usuario desde IndexedDB
   }
 
   static async importData(notes: Note[], books: Book[]): Promise<void> {
@@ -373,6 +303,6 @@ export class NotesService {
     await new Promise((resolve) => setTimeout(resolve, 250));
 
     // Guardar los datos importados
-    saveData(books, notes);
+    await IndexedDBService.saveData(books, notes);
   }
 }
