@@ -111,20 +111,21 @@ export class NotesService {
     // Simulación de tiempo de carga
     await new Promise((resolve) => setTimeout(resolve, 200));
 
-    const newNote: Note = {
-      id: uuidv4(),
-      bookId: note.bookId,
-      content: note.content,
-      createdAt: Date.now(),
-      updatedAt: Date.now(),
-    };
+    try {
+      const newNote: Note = {
+        id: uuidv4(),
+        bookId: note.bookId,
+        content: note.content,
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+      };
 
-    // Guardar en almacenamiento
-    const { books, notes } = await this.getData();
-    const updatedNotes = [...notes, newNote];
-    await IndexedDBService.saveData(books, updatedNotes);
-
-    return newNote;
+      // Usar el método específico para añadir una nota
+      return await IndexedDBService.addNote(newNote);
+    } catch (error) {
+      console.error("Error al añadir nota:", error);
+      throw error;
+    }
   }
 
   static async addBook(
@@ -133,22 +134,23 @@ export class NotesService {
     // Simulación de tiempo de carga
     await new Promise((resolve) => setTimeout(resolve, 200));
 
-    const newBook: Book = {
-      id: uuidv4(),
-      name: book.name,
-      description: book.description,
-      emoji: book.emoji || "📓",
-      color: book.color || "#64748b",
-      createdAt: Date.now(),
-      updatedAt: Date.now(),
-    };
+    try {
+      const newBook: Book = {
+        id: uuidv4(),
+        name: book.name,
+        description: book.description,
+        emoji: book.emoji || "📓",
+        color: book.color || "#64748b",
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+      };
 
-    // Guardar en almacenamiento
-    const { books, notes } = await this.getData();
-    const updatedBooks = [...books, newBook];
-    await IndexedDBService.saveData(updatedBooks, notes);
-
-    return newBook;
+      // Usar el método específico para añadir un libro
+      return await IndexedDBService.addBook(newBook);
+    } catch (error) {
+      console.error("Error al añadir libro:", error);
+      throw error;
+    }
   }
 
   static async updateNote(
@@ -157,23 +159,27 @@ export class NotesService {
     // Simulación de tiempo de carga
     await new Promise((resolve) => setTimeout(resolve, 200));
 
-    const { books, notes } = await this.getData();
-    const noteIndex = notes.findIndex((n) => n.id === noteUpdate.id);
-
-    if (noteIndex === -1) {
-      throw new Error(`Nota con ID ${noteUpdate.id} no encontrada`);
+    try {
+      // Primero obtenemos la nota existente
+      const existingNote = await IndexedDBService.getNoteById(noteUpdate.id);
+      
+      if (!existingNote) {
+        throw new Error(`Nota con ID ${noteUpdate.id} no encontrada`);
+      }
+      
+      // Actualizar solo el contenido manteniendo el resto de propiedades
+      const updatedNote: Note = {
+        ...existingNote,
+        content: noteUpdate.content,
+        updatedAt: Date.now()
+      };
+      
+      // Usar el nuevo método específico para actualizar una sola nota
+      return await IndexedDBService.updateNote(updatedNote);
+    } catch (error) {
+      console.error("Error al actualizar nota:", error);
+      throw error; // Propagar el error para manejarlo en el componente
     }
-
-    const updatedNote = {
-      ...notes[noteIndex],
-      content: noteUpdate.content,
-      updatedAt: Date.now(),
-    };
-
-    notes[noteIndex] = updatedNote;
-    await IndexedDBService.saveData(books, notes);
-
-    return updatedNote;
   }
 
   static async updateBook(
@@ -183,84 +189,82 @@ export class NotesService {
     // Simulación de tiempo de carga
     await new Promise((resolve) => setTimeout(resolve, 200));
 
-    const { books, notes } = await this.getData();
-    const bookIndex = books.findIndex((b) => b.id === bookUpdate.id);
-
-    if (bookIndex === -1) {
-      throw new Error(`Libro con ID ${bookUpdate.id} no encontrado`);
+    try {
+      // Primero obtener el libro existente
+      const existingBook = await IndexedDBService.getBookById(bookUpdate.id);
+      
+      if (!existingBook) {
+        throw new Error(`Libro con ID ${bookUpdate.id} no encontrado`);
+      }
+      
+      // Actualizar con los nuevos datos
+      const updatedBook: Book = {
+        ...existingBook,
+        ...bookUpdate,
+        updatedAt: Date.now(),
+      };
+      
+      // Usar el método específico para actualizar un libro
+      return await IndexedDBService.updateBook(updatedBook);
+    } catch (error) {
+      console.error("Error al actualizar libro:", error);
+      throw error;
     }
-
-    const updatedBook = {
-      ...books[bookIndex],
-      ...bookUpdate,
-      updatedAt: Date.now(),
-    };
-
-    books[bookIndex] = updatedBook;
-    await IndexedDBService.saveData(books, notes);
-
-    return updatedBook;
   }
 
   static async moveNote(noteId: string, targetBookId: string): Promise<Note> {
     // Simulación de tiempo de carga
     await new Promise((resolve) => setTimeout(resolve, 200));
 
-    const { books, notes } = await this.getData();
-    const noteIndex = notes.findIndex((n) => n.id === noteId);
-
-    if (noteIndex === -1) {
-      throw new Error(`Nota con ID ${noteId} no encontrada`);
+    try {
+      // Usar el método específico para mover una nota entre libros
+      return await IndexedDBService.moveNote(noteId, targetBookId);
+    } catch (error) {
+      console.error("Error al mover nota:", error);
+      throw error;
     }
-
-    const bookExists = books.some((b) => b.id === targetBookId);
-    if (!bookExists) {
-      throw new Error(`Libro con ID ${targetBookId} no encontrado`);
-    }
-
-    const updatedNote = {
-      ...notes[noteIndex],
-      bookId: targetBookId,
-      updatedAt: Date.now(),
-    };
-
-    notes[noteIndex] = updatedNote;
-    await IndexedDBService.saveData(books, notes);
-
-    return updatedNote;
   }
 
   static async deleteNote(id: string): Promise<string> {
     // Simulación de tiempo de carga
     await new Promise((resolve) => setTimeout(resolve, 150));
 
-    const { books, notes } = await this.getData();
-    const filteredNotes = notes.filter((n) => n.id !== id);
-
-    if (filteredNotes.length === notes.length) {
-      throw new Error(`Nota con ID ${id} no encontrada`);
+    try {
+      // Comprobar primero si la nota existe
+      const existingNote = await IndexedDBService.getNoteById(id);
+      
+      if (!existingNote) {
+        throw new Error(`Nota con ID ${id} no encontrada`);
+      }
+      
+      // Usar el método específico para eliminar una nota
+      await IndexedDBService.deleteNote(id);
+      return id;
+    } catch (error) {
+      console.error("Error al eliminar nota:", error);
+      throw error;
     }
-
-    await IndexedDBService.saveData(books, filteredNotes);
-    return id;
   }
 
   static async deleteBook(id: string): Promise<string> {
     // Simulación de tiempo de carga
     await new Promise((resolve) => setTimeout(resolve, 150));
 
-    const { books, notes } = await this.getData();
-    const filteredBooks = books.filter((b) => b.id !== id);
-
-    if (filteredBooks.length === books.length) {
-      throw new Error(`Libro con ID ${id} no encontrado`);
+    try {
+      // Comprobar primero si el libro existe
+      const existingBook = await IndexedDBService.getBookById(id);
+      
+      if (!existingBook) {
+        throw new Error(`Libro con ID ${id} no encontrado`);
+      }
+      
+      // Usar el método específico para eliminar un libro y sus notas asociadas
+      await IndexedDBService.deleteBook(id);
+      return id;
+    } catch (error) {
+      console.error("Error al eliminar libro:", error);
+      throw error;
     }
-
-    // También eliminamos todas las notas que pertenecen a este libro
-    const filteredNotes = notes.filter((n) => n.bookId !== id);
-
-    await IndexedDBService.saveData(filteredBooks, filteredNotes);
-    return id;
   }
 
   static async getNoteById(id: string): Promise<Note | null> {
